@@ -152,3 +152,41 @@ def test_native_jit_executes_modulo_with_truncation_remainder(tmp_path):
     )
     assert completed.returncode == 0, completed.stderr
     assert completed.stdout.splitlines() == ["1", "-1", "1"]
+
+
+def test_native_jit_uses_windows_ucrt_instead_of_null_cdll(monkeypatch):
+    from slang import native_jit
+
+    calls = []
+
+    class FakeLibrary:
+        pass
+
+    monkeypatch.setattr(native_jit.os, "name", "nt")
+    monkeypatch.setattr(
+        native_jit.ctypes,
+        "CDLL",
+        lambda name: calls.append(name) or FakeLibrary(),
+    )
+
+    native_jit._load_process_library()
+    assert calls == ["ucrtbase.dll"]
+
+
+def test_native_jit_uses_process_image_on_posix(monkeypatch):
+    from slang import native_jit
+
+    calls = []
+
+    class FakeLibrary:
+        pass
+
+    monkeypatch.setattr(native_jit.os, "name", "posix")
+    monkeypatch.setattr(
+        native_jit.ctypes,
+        "CDLL",
+        lambda name: calls.append(name) or FakeLibrary(),
+    )
+
+    native_jit._load_process_library()
+    assert calls == [None]

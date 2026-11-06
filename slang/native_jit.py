@@ -70,6 +70,18 @@ def _register_library_symbols(lib) -> set[str]:
     return registered
 
 
+def _load_process_library():
+    """Load the C runtime that provides process-wide standard C symbols.
+
+    ``ctypes.CDLL(None)`` is supported by the POSIX dlopen interface, but on
+    Windows it passes a null library name into PyInstaller's ctypes loader.
+    Windows exposes the Universal C Runtime through ucrtbase.dll instead.
+    """
+    if os.name == "nt":
+        return ctypes.CDLL("ucrtbase.dll")
+    return ctypes.CDLL(None)
+
+
 def execute_llvm(ir_text: str, function: str = "main") -> int:
     """JIT-compile and execute LLVM IR in the current process."""
     try:
@@ -83,7 +95,7 @@ def execute_llvm(ir_text: str, function: str = "main") -> int:
     binding.initialize_native_asmprinter()
 
     # Resolve standard C functions used by generated IR.
-    process = ctypes.CDLL(None)
+    process = _load_process_library()
     for name in ("printf", "fprintf", "puts", "malloc", "calloc", "realloc", "free", "memcpy", "strlen"):
         try:
             binding.add_symbol(name, ctypes.cast(getattr(process, name), ctypes.c_void_p).value)
