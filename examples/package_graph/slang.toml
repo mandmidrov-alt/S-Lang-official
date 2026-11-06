@@ -1,0 +1,8 @@
+[package]
+name = "package-graph-demo"
+version = "0.1.0"
+entry = "src/main.sl"
+source_roots = ["src"]
+
+[dependencies]
+mid = { path = "packages/mid", version = "^1.0.0" }

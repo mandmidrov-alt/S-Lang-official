@@ -1,0 +1,17 @@
+id = "slang"
+name = "S-Lang"
+description = "First-party S-Lang 1.0.0 language support for Zed."
+version = "1.0.0"
+schema_version = 1
+authors = ["S-Lang Project"]
+repository = "https://github.com/mandmidrov-alt/S-Lang-official"
+
+[language_servers.slang]
+name = "S-Lang Language Server"
+languages = ["S-Lang"]
+
+[grammars.slang]
+# Replace these placeholders with a dedicated public Tree-sitter grammar repository
+# and an immutable Git revision before Zed registry submission.
+repository = "https://github.com/mandmidrov-alt/S-Lang-tree-sitter"
+rev = "REPLACE_WITH_RELEASE_COMMIT"

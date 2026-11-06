@@ -1,0 +1,15 @@
+name: S-Lang 1.0 Signed Installers
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Signing is deliberately separated from the normal release workflow.
+# A normal release must not depend on signing certificates or notarization secrets.
+jobs:
+  note:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Use .github/workflows/release.yml for unsigned release installers. This workflow is reserved for explicit signing runs.'

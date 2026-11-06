@@ -1,0 +1,51 @@
+name: Build S-Lang editor extension
+
+on:
+  push:
+    paths:
+      - 'editors/vscode-slang/**'
+      - 'editors/README.md'
+      - 'tests/test_editor_syntax_alignment_1088.py'
+      - '.github/workflows/editor-extension.yml'
+  pull_request:
+    paths:
+      - 'editors/vscode-slang/**'
+      - 'editors/README.md'
+      - 'tests/test_editor_syntax_alignment_1088.py'
+      - '.github/workflows/editor-extension.yml'
+  workflow_dispatch:
+
+jobs:
+  vscode-extension:
+    name: VS Code extension
+    runs-on: ubuntu-24.04
+
+    defaults:
+      run:
+        working-directory: editors/vscode-slang
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+
+      - name: Install extension dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Validate extension metadata
+        run: npm run validate
+
+      - name: Validate editor syntax alignment
+        working-directory: .
+        run: python -m pytest -q tests/test_editor_syntax_alignment_1088.py
+
+      - name: Package VSIX
+        run: npm run package
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: S-Lang-VSCode-extension
+          path: editors/vscode-slang/*.vsix
+          if-no-files-found: error

@@ -1,0 +1,6 @@
+let config = json_parse("{\"service\":{\"port\":8080,\"workers\":4,\"mode\":\"prod\"}}")
+let port = json_get(config, "service.port", 0)
+let workers = json_get(config, "service.workers", 0)
+let updated = json_set(config, "service.workers", 6)
+let new_workers = json_get(updated, "service.workers", 0)
+show port, workers, new_workers, len(json_stringify(updated))

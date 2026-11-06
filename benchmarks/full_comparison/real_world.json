@@ -1,0 +1,144 @@
+{
+  "cases": [
+    {
+      "name": "csv_analysis",
+      "source_lines": {
+        "S-Lang": 4,
+        "Python": 8,
+        "C++": 8
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.8772193919999154,
+        "Python": 0.7055764785002339,
+        "C++": 0.0017846315001861512
+      }
+    },
+    {
+      "name": "json_processing",
+      "source_lines": {
+        "S-Lang": 4,
+        "Python": 6,
+        "C++": 4
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.8460275909999382,
+        "Python": 0.6422064329999557,
+        "C++": 0.0015748695000183943
+      }
+    },
+    {
+      "name": "text_processing",
+      "source_lines": {
+        "S-Lang": 5,
+        "Python": 8,
+        "C++": 8
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.9071159049999551,
+        "Python": 0.669234758000357,
+        "C++": 0.0016349994998563488
+      }
+    },
+    {
+      "name": "statistics",
+      "source_lines": {
+        "S-Lang": 6,
+        "Python": 6,
+        "C++": 12
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.7963700640000297,
+        "Python": 0.6481016264997379,
+        "C++": 0.0019407864999720914
+      }
+    },
+    {
+      "name": "file_roundtrip",
+      "source_lines": {
+        "S-Lang": 6,
+        "Python": 9,
+        "C++": 9
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.9117230624999593,
+        "Python": 0.6861312534999797,
+        "C++": 0.0017563930000505934
+      }
+    },
+    {
+      "name": "log_analysis",
+      "source_lines": {
+        "S-Lang": 4,
+        "Python": 5,
+        "C++": 5
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.9091207655001199,
+        "Python": 0.6904335804999846,
+        "C++": 0.0016750910003793251
+      }
+    },
+    {
+      "name": "config_processing",
+      "source_lines": {
+        "S-Lang": 6,
+        "Python": 6,
+        "C++": 9
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.9223671634999846,
+        "Python": 0.6733753900002739,
+        "C++": 0.0017035485002452333
+      }
+    }
+  ],
+  "summary": {
+    "cases": 7,
+    "correct": 7,
+    "all_correct": true,
+    "timings_are_informational": true,
+    "iterations": 2
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "cases": [
+    {
+      "name": "pipeline",
+      "source_lines": {
+        "S-Lang": 8,
+        "Python": 5,
+        "C++": 9
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.8337229379999371,
+        "Python": 0.672048901999915,
+        "C++": 0.0018654429995876853
+      },
+      "native": {
+        "available": false,
+        "skipped": true,
+        "reason": "Native execution was explicitly skipped."
+      }
+    },
+    {
+      "name": "reduce",
+      "source_lines": {
+        "S-Lang": 3,
+        "Python": 3,
+        "C++": 5
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.850117837000198,
+        "Python": 0.7211125240000911,
+        "C++": 0.0017980910001824668
+      },
+      "native": {
+        "available": false,
+        "skipped": true,
+        "reason": "Native execution was explicitly skipped."
+      }
+    },
+    {
+      "name": "sequence",
+      "source_lines": {
+        "S-Lang": 3,
+        "Python": 6,
+        "C++": 9
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.9172646100000748,
+        "Python": 0.7485300219996134,
+        "C++": 0.0017286560000684403
+      },
+      "native": {
+        "available": false,
+        "skipped": true,
+        "reason": "Native execution was explicitly skipped."
+      }
+    },
+    {
+      "name": "entity",
+      "source_lines": {
+        "S-Lang": 8,
+        "Python": 10,
+        "C++": 8
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.8400280140003815,
+        "Python": 0.643128254000203,
+        "C++": 0.0018788620000123046
+      },
+      "native": {
+        "available": false,
+        "skipped": true,
+        "reason": "Native execution was explicitly skipped."
+      }
+    },
+    {
+      "name": "physics",
+      "source_lines": {
+        "S-Lang": 9,
+        "Python": 9,
+        "C++": 12
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.8182264260003649,
+        "Python": 0.6537686759997996,
+        "C++": 0.002210823000041273
+      },
+      "native": {
+        "available": false,
+        "skipped": true,
+        "reason": "Native execution was explicitly skipped."
+      }
+    },
+    {
+      "name": "filter-sort",
+      "source_lines": {
+        "S-Lang": 8,
+        "Python": 3,
+        "C++": 10
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.7981817109998701,
+        "Python": 0.6587257820001469,
+        "C++": 0.002280548000271665
+      },
+      "native": {
+        "available": false,
+        "skipped": true,
+        "reason": "Native execution was explicitly skipped."
+      }
+    },
+    {
+      "name": "circle",
+      "source_lines": {
+        "S-Lang": 4,
+        "Python": 4,
+        "C++": 6
+      },
+      "correctness": {
+        "S-Lang_vs_Python": true,
+        "S-Lang_vs_C++": true,
+        "Python_vs_C++": true,
+        "all_match": true
+      },
+      "median_seconds": {
+        "S-Lang_interpreter": 0.8574134549999144,
+        "Python": 0.6303398619998006,
+        "C++": 0.0017320920001111517
+      },
+      "native": {
+        "available": false,
+        "skipped": true,
+        "reason": "Native execution was explicitly skipped."
+      }
+    }
+  ],
+  "summary": {
+    "cases": 7,
+    "correct": 7,
+    "all_correct": true,
+    "native_supported": 0,
+    "native_consistent": true,
+    "native_skipped": true,
+    "timings_are_informational": true,
+    "iterations": 1
+  }
+}

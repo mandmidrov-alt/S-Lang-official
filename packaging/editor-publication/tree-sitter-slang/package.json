@@ -1,0 +1,10 @@
+{
+  "name": "tree-sitter-slang",
+  "version": "1.0.0",
+  "description": "Tree-sitter grammar for S-Lang 1.0.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mandmidrov-alt/S-Lang-official"
+  }
+}

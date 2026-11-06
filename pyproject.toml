@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slang-language"
+version = "1.0"
+description = "S-Lang programming language"
+requires-python = ">=3.10"
+
+[project.scripts]
+slang = "slang.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["slang*"]
+
+[tool.setuptools.package-data]
+slang = ["slang_runtime.c"]

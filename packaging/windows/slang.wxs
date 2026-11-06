@@ -1,0 +1,16 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="S-Lang" Manufacturer="S-Lang Project" Version="1.0.0.0" UpgradeCode="9D44F7C1-8E8D-4C6D-9C41-6F5D0E1C0100">
+    <MajorUpgrade DowngradeErrorMessage="A newer S-Lang version is already installed." />
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="INSTALLFOLDER" Name="S-Lang">
+        <Component Id="S_LangExecutable" Guid="*">
+          <File Source="..\..\dist\windows-x86_64\slang1.0.exe" />
+          <EnvironmentVariable Name="PATH" Value="[INSTALLFOLDER]" Permanent="no" Part="last" Action="set" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+    <Feature Id="MainFeature" Title="S-Lang" Level="1">
+      <ComponentRef Id="S_LangExecutable" />
+    </Feature>
+  </Package>
+</Wix>

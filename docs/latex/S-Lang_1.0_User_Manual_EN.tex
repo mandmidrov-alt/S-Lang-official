@@ -1,0 +1,897 @@
+\documentclass[11pt,a4paper,oneside]{book}
+\usepackage[a4paper,margin=22mm,headheight=15pt]{geometry}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+\IfFontExistsTF{DejaVu Serif}{\setmainfont{DejaVu Serif}}{\setmainfont{Latin Modern Roman}}
+\IfFontExistsTF{DejaVu Sans}{\setsansfont{DejaVu Sans}}{\setsansfont{Latin Modern Sans}}
+\IfFontExistsTF{DejaVu Sans Mono}{\setmonofont{DejaVu Sans Mono}[Scale=0.86]}{\setmonofont{Latin Modern Mono}[Scale=0.86]}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{longtable,booktabs,array,tabularx}
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{microtype}
+\usepackage{titlesec}
+\hypersetup{colorlinks=true,linkcolor=blue!55!black,urlcolor=blue!55!black,pdftitle={S-Lang 1.0 User Guide and Language Reference},pdfauthor={S-Lang Project}}
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{S-Lang 1.0}\fancyhead[R]{\leftmark}\fancyfoot[C]{\thepage}
+\definecolor{codebg}{RGB}{246,247,249}
+\definecolor{codeframe}{RGB}{210,215,222}
+\lstdefinelanguage{SLang}{
+  morekeywords={let,state,set,show,function,return,if,then,else,record,entity,property,self,where,map,sort,by,asc,desc,sum,count,max,min,average,avg,any,all,reduce,with,tee,sequence,from,for,steps,up,to,until,using,choosing,satisfy,module,import,as,export,data,body,physics,gravity,graph,path,find,in,minimizing,maximizing,choose,cost,simulate,around,step},
+  sensitive=true, morecomment=[l]{\#}, morestring=[b]", morestring=[b]',
+  keywordstyle=\color{blue!65!black}\bfseries, commentstyle=\color{gray}, stringstyle=\color{red!55!black}
+}
+\lstset{language=SLang,basicstyle=\ttfamily\small,backgroundcolor=\color{codebg},frame=single,rulecolor=\color{codeframe},breaklines=true,columns=fullflexible,keepspaces=true,showstringspaces=false,tabsize=4,xleftmargin=5pt,xrightmargin=5pt,aboveskip=8pt,belowskip=8pt}
+\setlist{itemsep=2pt,topsep=4pt}
+\newcommand{\slang}{\textsf{S-Lang}}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\version}{1.0}
+\begin{document}
+\frontmatter
+\begin{titlepage}\centering\vspace*{32mm}
+{\Huge\bfseries S-Lang\par}\vspace{5mm}
+{\LARGE User Guide and Language Reference\par}\vspace{14mm}
+{\Large Version \version\par}\vspace{8mm}
+{\large A practical introduction and normative reference for the S-Lang programming language\par}
+\vfill
+{\large S-Lang Project\par}
+{\large XeLaTeX or LuaLaTeX\par}\vspace{12mm}
+\end{titlepage}
+\chapter*{How to Use This Book}
+This book combines a practical course with a language reference. The first chapters introduce the language step by step. Later chapters describe the accepted syntax, standard-library surface, command-line tools, and important limitations.
+
+If you are new to S-Lang, read the chapters in order and type the examples into \code{.sl} files. Run \code{slang check} before running a program. Modify example values and observe the result. If you already know the language, use the table of contents and the reference chapters.
+
+The compiler is the authority for accepted syntax. A construct accepted by the parser is not automatically supported by every execution backend. The interpreter and Native JIT may have different capability boundaries; use the backend capability command when that distinction matters.
+
+\chapter*{Learning Path}
+\begin{enumerate}
+\item Foundations: source files, comments, values, variables, expressions, and conditions.
+\item Programming: functions, records, entities, collections, and pipelines.
+\item Applications: modules, files, CSV, JSON, and standard-library functions.
+\item Advanced topics: declarative constructs, native execution, diagnostics, and backend limitations.
+\end{enumerate}
+\tableofcontents
+\mainmatter
+
+\chapter{What Is S-Lang?}
+\slang{} is a high-level, general-purpose programming language. Its syntax emphasizes describing tasks, data, and transformations rather than spelling out low-level implementation details. The design goal is readable, deterministic source code that can be understood by ordinary users as well as experienced developers.
+
+The language includes values and expressions, explicit variable declarations, mutable state, functions, records, entities, collection operations, pipelines, modules, a standard library, and domain-oriented constructs for selected computational tasks.
+
+\section{Design principles}
+\begin{itemize}
+\item Prefer clear, explicit constructs over compact but ambiguous syntax.
+\item Keep grammar deterministic and documented; do not assume that syntax from Python, JavaScript, Rust, or SQL is accepted.
+\item Use \code{let} for ordinary bindings and \code{state}/\code{set} for mutable state.
+\item Keep pipeline stages on one physical source line.
+\item Treat parser, semantic validation, runtime behavior, tests, and documentation as separate but coordinated contracts.
+\item Preserve readability when adding language features. A shorter program is not automatically a clearer program.
+\end{itemize}
+
+\section{Version and compatibility}
+This book describes the S-Lang 1.0 language line. The public version is \code{1.0}. Package metadata may use the same version string; the Windows executable is distributed as \code{slang1.0.exe}. The exact accepted syntax is defined by the compiler shipped with the release and by the conformance tests included in the source package.
+
+\chapter{Installation and First Steps}
+\section{Check the installation}
+Open a terminal and run:
+\begin{lstlisting}[language={}]
+slang version
+\end{lstlisting}
+The command should report \code{1.0}. On Windows, the installed executable is named \code{slang1.0.exe}; use that filename when invoking it directly. If the installer adds its directory to the user PATH, the executable can be started from a new terminal.
+
+\section{Create and run a source file}
+Create a text file named \code{main.sl}:
+\begin{lstlisting}
+let name = "S-Lang"
+let release = 1.0
+show "Hello from", name
+show "Version:", release
+\end{lstlisting}
+Check and run it:
+\begin{lstlisting}[language={}]
+slang check main.sl
+slang run main.sl
+\end{lstlisting}
+The command name shown above is the standard command on Unix-like systems and for installations that provide a command alias. On Windows, use \code{slang1.0.exe} if no \code{slang} alias is provided.
+
+\section{Create a project}
+\begin{lstlisting}[language={}]
+slang init my-app --name my-app --version 0.1.0
+cd my-app
+slang check src/main.sl
+slang run src/main.sl
+\end{lstlisting}
+The version passed to \code{slang init} is the version of the project being created, not the installed compiler version.
+
+\chapter{Source Files, Comments, and Basic Syntax}
+\section{Source files and names}
+S-Lang source files use the \code{.sl} extension. Names are case-sensitive. Use spaces consistently for indentation and do not mix tabs and spaces in the same block.
+
+\section{Comments}
+The \code{\#} character begins a comment outside a quoted string. A comment continues to the end of the physical line. It may appear on a line by itself or after an instruction. A hash character inside single- or double-quoted text is part of the string.
+\begin{lstlisting}
+# A full-line comment
+let label = "S-Lang # language" # A trailing comment
+let note = 'The # character is text here'
+show label, note
+\end{lstlisting}
+
+\section{Blocks}
+A block header ends with a colon. Its body is indented:
+\begin{lstlisting}
+if true:
+    show "The condition is true"
+else:
+    show "The condition is false"
+\end{lstlisting}
+The \code{else:} line must align with its matching \code{if:}. Empty branches are not valid.
+
+\chapter{Values, Variables, and Expressions}
+\section{Literals}
+\begin{lstlisting}
+let whole = 12
+let decimal = 2.5
+let scientific = 1.25e3
+let enabled = true
+let disabled = false
+let title = "S-Lang"
+let alternate = 'text'
+let values = [1, 2, 3]
+let person = {name: "Ada", age: 36}
+let empty_values = []
+let empty_record = {}
+\end{lstlisting}
+The language supports integer, decimal, and scientific-notation numbers; Boolean values; strings; lists; and record literals. Record keys may be identifiers or quoted strings.
+
+\section{Field access and function calls}
+\begin{lstlisting}
+let person = {name: "Ada", age: 36}
+let person_name = person.name
+let normalized = upper(person.name)
+let root = sqrt(81)
+show person_name, normalized, root
+\end{lstlisting}
+A function call has the form \code{name(argument1, argument2)}. Qualified names may use a dot. Record fields are accessed with dot notation. List indexing such as \code{values[0]} is not part of the S-Lang 1.0 grammar.
+
+\section{Operators and precedence}
+From highest to lowest, the expression precedence is:
+\begin{center}
+\begin{tabular}{ll}\toprule
+Level & Operators/forms \\\midrule
+1 & Parentheses, literals, names, calls, dot field access \\
+2 & Exponentiation: \code{\^} \\
+3 & Unary \code{+}, \code{-}, \code{not} \\
+4 & Multiplication, division, remainder: \code{*}, \code{/}, \code{\%} \\
+5 & Addition and subtraction: \code{+}, \code{-} \\
+6 & Comparisons: \code{==}, \code{!=}, \code{<}, \code{<=}, \code{>}, \code{>=} \\
+7 & Logical \code{and} \\
+8 & Logical \code{or} \\
+9 & Conditional expression: \code{if ... then ... else ...} \\\bottomrule
+\end{tabular}
+\end{center}
+Exponentiation is right-associative: \code{2 ^ 3 ^ 2} means \code{2 ^ (3 ^ 2)}. Unary minus binds outside exponentiation. Do not write chained comparisons such as \code{a < b < c}; write \code{a < b and b < c}.
+\begin{lstlisting}
+let a = 12
+let b = 5
+let total = a + b
+let quotient = a / b
+let remainder = a % b
+let power = 2 ^ 3
+let allowed = a >= 10 and b != 0
+let label = if allowed then "valid" else "invalid"
+show total, quotient, remainder, power, label
+\end{lstlisting}
+
+\chapter{Bindings and Mutable State}
+Use \code{let} for an ordinary binding:
+\begin{lstlisting}
+let title = "Report"
+let count = 3
+show title, count
+\end{lstlisting}
+Use \code{state} to declare a value that will be updated, and \code{set} to update it:
+\begin{lstlisting}
+state counter = 0
+set counter = counter + 1
+show counter
+\end{lstlisting}
+The \code{set} statement updates an existing state binding; it does not declare a new variable. Do not use bare assignment as a universal declaration form.
+
+\chapter{Conditions}
+\section{Conditional expressions}
+A conditional expression produces one value:
+\begin{lstlisting}
+let score = 82
+let grade = if score >= 90 then "A" else if score >= 75 then "B" else "C"
+show grade
+\end{lstlisting}
+
+\section{Block conditions}
+Use an indented block when a branch contains one or more statements:
+\begin{lstlisting}
+let load = 68
+if load >= 90:
+    show "Critical"
+else:
+    if load >= 70:
+        show "High"
+    else:
+        show "Normal"
+\end{lstlisting}
+Conditions must evaluate to Boolean values. Keep indentation consistent and align each \code{else:} with its matching \code{if:}.
+
+\chapter{Functions}
+\section{Declaring a function}
+\begin{lstlisting}
+function square(value: Number) -> Number:
+    return value * value
+
+let result = square(9)
+show result
+\end{lstlisting}
+Parameters are comma-separated and use the form \code{name: Type}. A parameter type may be omitted where inference is sufficient. A return type after \code{->} may also be omitted. Public functions are easier to understand when their parameter and result types are explicit. The function body must return a value on every path when a result is declared or required by its use.
+
+\section{Generic functions}
+\begin{lstlisting}
+function identity<T>(value: T) -> T:
+    return value
+
+let number = identity(7)
+let text_value = identity("S-Lang")
+show number, text_value
+\end{lstlisting}
+Type parameters are declared in angle brackets. Use distinct type-parameter names within a declaration.
+
+\chapter{Types, Records, Entities, and Properties}
+\section{Common types}
+Common type names include \code{Number}, \code{Boolean}, \code{Text}, \code{List}, \code{Record}, and \code{Entity}. Parameterized forms include \code{List<Number>} and function types in supported type contexts. The semantic analyzer checks type compatibility and reports invalid field access or incompatible expressions.
+
+\section{Records}
+A record groups named fields:
+\begin{lstlisting}
+record Person:
+    name: Text
+    age: Number
+
+let ada = Person("Ada", 36)
+show ada.name, ada.age
+\end{lstlisting}
+Record fields must have unique names. A record declaration must contain at least one field. Generic records are supported:
+\begin{lstlisting}
+record Box<T>:
+    value: T
+
+let box = Box(7)
+show box.value
+\end{lstlisting}
+
+\section{Entities and properties}
+Entities can describe domain objects with measured fields:
+\begin{lstlisting}
+entity Circle:
+    radius: m
+
+let disk = Circle(10 m)
+show disk.radius
+\end{lstlisting}
+A property is attached to a declared entity. Inside the property body, \code{self} refers to the current instance:
+\begin{lstlisting}
+entity Circle:
+    radius: m
+
+property Circle.diameter -> m:
+    return self.radius * 2
+
+let disk = Circle(10 m)
+show disk.diameter
+\end{lstlisting}
+
+\chapter{Collections}
+Collection operations provide a declarative way to filter, transform, sort, and summarize lists.
+
+\section{Filtering with \code{where}}
+\begin{lstlisting}
+let values = [1, 2, 3, 4, 5]
+let selected = values where item >= 3
+show selected
+\end{lstlisting}
+The predicate must return a Boolean value. In an element context, \code{item} or \code{row} refers to the current element. For record collections, access a field with \code{row.field} or \code{item.field}.
+
+\section{Transforming with \code{map}}
+\begin{lstlisting}
+let values = [1, 2, 3]
+let doubled = values map item * 2
+show doubled
+\end{lstlisting}
+
+\section{Sorting}
+\begin{lstlisting}
+let values = [3, 1, 2]
+let ascending = values sort by item asc
+let descending = values sort by item desc
+show ascending, descending
+\end{lstlisting}
+The direction may be omitted; ascending order is the default.
+
+\section{Aggregates}
+\begin{lstlisting}
+let values = [1, 2, 3, 4]
+let total = values sum
+let amount = values count
+let largest = values max
+let smallest = values min
+let mean = values average
+show total, amount, largest, smallest, mean
+\end{lstlisting}
+The supported aggregate names are \code{sum}, \code{count}, \code{max}, \code{min}, \code{average}, \code{avg}, \code{any}, and \code{all}. The \code{count} operation does not need an element expression. Other aggregates use the current element by default; an explicit expression such as \code{values sum item} may be supplied.
+
+\section{Reduction}
+The \code{reduce} operation combines the elements into one result. \code{acc} is the accumulator; \code{item} or \code{row} is the current element:
+\begin{lstlisting}
+let values = [1, 2, 3, 4]
+let total = values reduce 0 with acc + item
+let product = values reduce 1 with acc * item
+show total, product
+\end{lstlisting}
+For record collections, use \code{row.field} or \code{item.field}. A bare field name can refer to a field of the current record in collection context, but it is not an alias for a scalar list item. Thus a numeric list reduction uses \code{item}, not \code{value}:
+\begin{lstlisting}
+data measurements:
+    first value 10
+    second value 20
+let total = measurements reduce 0 with acc + row.value
+show total
+\end{lstlisting}
+The step expression must return a value compatible with the initial accumulator.
+
+\chapter{Pipelines}
+A pipeline connects collection operations in a readable sequence. In S-Lang 1.0, the complete pipeline must be written on one physical source line.
+\begin{lstlisting}
+let numbers = [1, 2, 3, 4, 5]
+let result = numbers |> where item >= 3 |> map item * 2 |> sort by item desc |> sum
+show result
+\end{lstlisting}
+
+\section{Explicit and compact forms}
+Inside a pipeline, \code{item} and \code{row} refer to the current element. A leading comparison or arithmetic operator can be used as shorthand for the current element:
+\begin{lstlisting}
+let numbers = [1, 2, 3, 4, 5]
+let compact = numbers |> where >= 3 |> map * 2 |> sum
+show compact
+\end{lstlisting}
+For record collections, a leading field such as \code{.score} is shorthand for the current record's field:
+\begin{lstlisting}
+let records = [{score: 10}, {score: 20}, {score: 30}]
+let high = records |> where .score >= 20 |> sort by .score desc
+show high
+\end{lstlisting}
+Use the explicit \code{item.field} or \code{row.field} form when it improves clarity.
+
+\section{Conditional stages and \code{tee}}
+Conditional pipeline stages select a branch based on a condition. \code{tee} allows a pipeline value to be observed while the pipeline continues. Because these forms have additional context rules, follow the exact examples and constraints in the compiler's normative reference and tests. Do not split a pipeline across physical lines.
+
+\chapter{Sequences and Declarative Constructs}
+\section{Sequences}
+A sequence declaration describes a deterministic series:
+\begin{lstlisting}
+sequence doubled from 1 for 5 steps using value * 2
+sequence bounded from 1 for up to 10 steps until value >= 100 using value * 2
+\end{lstlisting}
+The first form specifies a fixed number of steps. The second form specifies an upper bound and a stopping condition.
+
+\section{Constraint-based solutions}
+The \code{satisfy} construct describes constraints over declared variables:
+\begin{lstlisting}
+solution = satisfy:
+    x in 1..10
+    y in 1..10
+    x + y == 12
+show solution
+\end{lstlisting}
+The accepted structure is a domain construct, not a general-purpose block expression. Use the form documented by the compiler and its tests.
+
+\section{Data tables and graphs}
+Data tables provide named rows and fields:
+\begin{lstlisting}
+data students:
+    Alice age 22 score 91
+    Bob age 17 score 88
+
+let adults = students where age >= 18
+let ranked = adults sort by score desc
+show ranked
+\end{lstlisting}
+Graph declarations describe nodes and weighted connections:
+\begin{lstlisting}
+graph routes:
+    A -> B cost 2
+    B <-> C cost 3
+\end{lstlisting}
+
+\section{Physical models}
+Physical quantities can be written with units. A model may declare bodies and a simulation:
+\begin{lstlisting}
+physics gravity
+body sun:
+    mass 1 kg
+    position 0 m
+    velocity 0 mps
+body earth:
+    mass 1 kg
+    position 1 m
+    velocity 1 mps
+simulate earth around sun for 1 day step 1 minute
+\end{lstlisting}
+The exact units and domain constraints are checked by the semantic analyzer and runtime. Do not infer that every model is supported by every backend.
+
+\chapter{Modules and Program Organization}
+\section{Modules and imports}
+A module declaration names a source module. Imports may use a file path or a registered standard module:
+\begin{lstlisting}[language={}]
+module geometry
+import "geometry.sl" as geo
+import std.math
+import "geometry.sl" {Circle, circumference}
+\end{lstlisting}
+The exact forms of imports are resolved by the module loader. Standard module names are registered in \code{slang/stdlib/modules.py}.
+
+\section{Exports and re-exports}
+A module can expose public names and re-export selected names from another module:
+\begin{lstlisting}[language={}]
+export Circle, circumference
+export {Circle} from "geometry.sl"
+\end{lstlisting}
+Only exported names form the public module API. Private names are not implicitly re-exported.
+
+\chapter{Input, Output, and the Standard Library}
+The standard library includes mathematics, text, collections, data access, aggregation, relational operations, analytics, JSON, CSV, paths, files, processes, and date/time utilities.
+
+\section{Reading CSV and JSON}
+\begin{lstlisting}
+let rows = read_csv("data/people.csv")
+let people = rows where item.age >= 18
+show people
+\end{lstlisting}
+\begin{lstlisting}
+let value = read_json("data/config.json")
+show value
+\end{lstlisting}
+File operations depend on filesystem access. Process operations may start external programs and should be used deliberately. Check the function's effect and capability in the standard-library catalog before relying on it in a restricted runtime.
+
+\section{Public standard-library catalog}
+The following table is generated from the public catalog in \code{slang/stdlib/catalog.py}. It lists all public function names in the S-Lang 1.0 source tree, grouped by module. Function contracts, argument types, and effect constraints are defined by the implementation and semantic registry.
+\subsection{aggregate — Grouping and aggregation}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{frequency} & Standard-library grouping and aggregation operation: frequency. \\
+\code{group_average} & Standard-library grouping and aggregation operation: group average. \\
+\code{group_by} & Group records by the selected field. \\
+\code{group_count} & Count records in each field-value group. \\
+\code{group_max} & Standard-library grouping and aggregation operation: group max. \\
+\code{group_min} & Standard-library grouping and aggregation operation: group min. \\
+\code{group_sum} & Sum a numeric field within each group. \\
+\code{mode} & Standard-library grouping and aggregation operation: mode. \\
+\bottomrule\end{longtable}
+
+\subsection{analytics — Statistical and analytical operations}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{bottom_by} & Standard-library data analytics operation: bottom by. \\
+\code{group_top_by} & Standard-library data analytics operation: group top by. \\
+\code{rank_by} & Standard-library data analytics operation: rank by. \\
+\code{top_by} & Standard-library data analytics operation: top by. \\
+\code{window} & Split records into sliding windows. \\
+\code{window_average} & Standard-library data analytics operation: window average. \\
+\code{window_sum} & Standard-library data analytics operation: window sum. \\
+\bottomrule\end{longtable}
+
+\subsection{collections — Collection processing}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{aggregate_groups} & Standard-library collection processing operation: aggregate groups. \\
+\code{aggregate_values_by} & Standard-library collection processing operation: aggregate values by. \\
+\code{aggregate_values_by_with_key} & Standard-library collection processing operation: aggregate values by with key. \\
+\code{all_true} & Standard-library collection processing operation: all true. \\
+\code{any_true} & Standard-library collection processing operation: any true. \\
+\code{argmax_number} & Standard-library collection processing operation: argmax number. \\
+\code{argmin_number} & Standard-library collection processing operation: argmin number. \\
+\code{average_number} & Return the arithmetic mean of a list of numbers. \\
+\code{chunk} & Standard-library collection processing operation: chunk. \\
+\code{chunk_exact} & Standard-library collection processing operation: chunk exact. \\
+\code{clip_numbers} & Standard-library collection processing operation: clip numbers. \\
+\code{concat_values} & Standard-library collection processing operation: concat values. \\
+\code{contains_all_values} & Standard-library collection processing operation: contains all values. \\
+\code{contains_any_value} & Standard-library collection processing operation: contains any value. \\
+\code{contains_value} & Standard-library collection processing operation: contains value. \\
+\code{correlation_numbers} & Standard-library collection processing operation: correlation numbers. \\
+\code{cosine_similarity_numbers} & Standard-library collection processing operation: cosine similarity numbers. \\
+\code{count_by_values} & Standard-library collection processing operation: count by values. \\
+\code{count_if} & Standard-library collection processing operation: count if. \\
+\code{count_value} & Standard-library collection processing operation: count value. \\
+\code{covariance_numbers} & Standard-library collection processing operation: covariance numbers. \\
+\code{cumulative_average_numbers} & Standard-library collection processing operation: cumulative average numbers. \\
+\code{cumulative_max_numbers} & Standard-library collection processing operation: cumulative max numbers. \\
+\code{cumulative_min_numbers} & Standard-library collection processing operation: cumulative min numbers. \\
+\code{cumulative_product_numbers} & Standard-library collection processing operation: cumulative product numbers. \\
+\code{cumulative_sum_numbers} & Standard-library collection processing operation: cumulative sum numbers. \\
+\code{difference_values} & Standard-library collection processing operation: difference values. \\
+\code{differences_numbers} & Standard-library collection processing operation: differences numbers. \\
+\code{distinct_by_values} & Standard-library collection processing operation: distinct by values. \\
+\code{dot_product_numbers} & Standard-library collection processing operation: dot product numbers. \\
+\code{drop_until} & Standard-library collection processing operation: drop until. \\
+\code{drop_while} & Standard-library collection processing operation: drop while. \\
+\code{enumerate_values} & Standard-library collection processing operation: enumerate values. \\
+\code{euclidean_distance_numbers} & Standard-library collection processing operation: euclidean distance numbers. \\
+\code{filter_values} & Standard-library collection processing operation: filter values. \\
+\code{find_all} & Return all items matching a condition. \\
+\code{find_all_indices} & Standard-library collection processing operation: find all indices. \\
+\code{find_first} & Return the first item matching a condition. \\
+\code{find_last} & Return the last item matching a condition. \\
+\code{flatten_one} & Standard-library collection processing operation: flatten one. \\
+\code{fold_values} & Standard-library collection processing operation: fold values. \\
+\code{group_by_values} & Standard-library collection processing operation: group by values. \\
+\code{group_values_by} & Standard-library collection processing operation: group values by. \\
+\code{has_at_least_values} & Standard-library collection processing operation: has at least values. \\
+\code{has_at_most_values} & Standard-library collection processing operation: has at most values. \\
+\code{has_exactly_values} & Standard-library collection processing operation: has exactly values. \\
+\code{index_by_values} & Standard-library collection processing operation: index by values. \\
+\code{index_of_number} & Standard-library collection processing operation: index of number. \\
+\code{intersect_values} & Standard-library collection processing operation: intersect values. \\
+\code{is_empty_values} & Standard-library collection processing operation: is empty values. \\
+\code{is_multiple_values} & Standard-library collection processing operation: is multiple values. \\
+\code{is_not_empty_values} & Standard-library collection processing operation: is not empty values. \\
+\code{is_single_value} & Standard-library collection processing operation: is single value. \\
+\code{is_unique_values} & Standard-library collection processing operation: is unique values. \\
+\code{l2_norm_numbers} & Standard-library collection processing operation: l2 norm numbers. \\
+\code{last_index_of_number} & Standard-library collection processing operation: last index of number. \\
+\code{manhattan_distance_numbers} & Standard-library collection processing operation: manhattan distance numbers. \\
+\code{map_values} & Standard-library collection processing operation: map values. \\
+\code{map_with_index} & Standard-library collection processing operation: map with index. \\
+\code{max_by_values} & Standard-library collection processing operation: max by values. \\
+\code{max_number} & Standard-library collection processing operation: max number. \\
+\code{median_number} & Return the median of a list of numbers. \\
+\code{min_by_values} & Standard-library collection processing operation: min by values. \\
+\code{min_number} & Standard-library collection processing operation: min number. \\
+\code{moving_average_numbers} & Standard-library collection processing operation: moving average numbers. \\
+\code{none_true} & Standard-library collection processing operation: none true. \\
+\code{normalize_numbers} & Standard-library collection processing operation: normalize numbers. \\
+\code{pairwise} & Standard-library collection processing operation: pairwise. \\
+\code{partition_by_values} & Standard-library collection processing operation: partition by values. \\
+\code{partition_indices} & Standard-library collection processing operation: partition indices. \\
+\code{partition_values} & Standard-library collection processing operation: partition values. \\
+\code{percent_change_numbers} & Standard-library collection processing operation: percent change numbers. \\
+\code{product_numbers} & Standard-library collection processing operation: product numbers. \\
+\code{quantile_number} & Standard-library collection processing operation: quantile number. \\
+\code{reject_values} & Standard-library collection processing operation: reject values. \\
+\code{reverse} & Return the items of a list in reverse order. \\
+\code{reverse_range_values} & Standard-library collection processing operation: reverse range values. \\
+\code{reverse_values} & Standard-library collection processing operation: reverse values. \\
+\code{rotate_values} & Standard-library collection processing operation: rotate values. \\
+\code{running_values} & Standard-library collection processing operation: running values. \\
+\code{running_values_right} & Standard-library collection processing operation: running values right. \\
+\code{scan_values} & Standard-library collection processing operation: scan values. \\
+\code{scan_values_right} & Standard-library collection processing operation: scan values right. \\
+\code{skip} & Return the list after skipping the requested number of items. \\
+\code{sliding_windows} & Standard-library collection processing operation: sliding windows. \\
+\code{sort_by_values} & Standard-library collection processing operation: sort by values. \\
+\code{sort_descending_values} & Standard-library collection processing operation: sort descending values. \\
+\code{sort_numbers} & Return numbers in ascending order. \\
+\code{sort_values} & Standard-library collection processing operation: sort values. \\
+\code{span_while} & Standard-library collection processing operation: span while. \\
+\code{split_at_values} & Standard-library collection processing operation: split at values. \\
+\code{stddev_number} & Standard-library collection processing operation: stddev number. \\
+\code{sum_numbers} & Return the sum of a list of numbers. \\
+\code{sum_squares_numbers} & Standard-library collection processing operation: sum squares numbers. \\
+\code{symmetric_difference_values} & Standard-library collection processing operation: symmetric difference values. \\
+\code{take} & Return the first requested number of list items. \\
+\code{take_every_from_values} & Standard-library collection processing operation: take every from values. \\
+\code{take_every_values} & Standard-library collection processing operation: take every values. \\
+\code{take_until} & Standard-library collection processing operation: take until. \\
+\code{take_while} & Standard-library collection processing operation: take while. \\
+\code{union_values} & Standard-library collection processing operation: union values. \\
+\code{unique_values} & Standard-library collection processing operation: unique values. \\
+\code{unzip_values} & Standard-library collection processing operation: unzip values. \\
+\code{variance_number} & Standard-library collection processing operation: variance number. \\
+\code{weighted_average_numbers} & Standard-library collection processing operation: weighted average numbers. \\
+\code{z_scores_numbers} & Standard-library collection processing operation: z scores numbers. \\
+\code{zip_values} & Standard-library collection processing operation: zip values. \\
+\bottomrule\end{longtable}
+
+\subsection{csv — CSV input and output}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{read_csv} & read UTF-8 CSV into records \\
+\code{write_csv} & write records as UTF-8 CSV \\
+\bottomrule\end{longtable}
+
+\subsection{data — Record and field access}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{get} & Return the value associated with a record field. \\
+\code{has} & Check whether a record contains a field. \\
+\code{keys} & Return the field names in a record. \\
+\code{merge_records} & Combine the fields of two records. \\
+\code{pluck} & Extract one field from each record in a list. \\
+\code{remove_field} & Standard-library record and field access operation: remove field. \\
+\code{select_fields} & Standard-library record and field access operation: select fields. \\
+\bottomrule\end{longtable}
+
+\subsection{datetime — Date and time operations}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{add_days_datetime} & Standard-library date and time operation: add days datetime. \\
+\code{add_months_datetime} & Standard-library date and time operation: add months datetime. \\
+\code{add_seconds_datetime} & Standard-library date and time operation: add seconds datetime. \\
+\code{date_components_datetime} & Standard-library date and time operation: date components datetime. \\
+\code{days_in_month} & Standard-library date and time operation: days in month. \\
+\code{diff_seconds_datetime} & Standard-library date and time operation: diff seconds datetime. \\
+\code{end_of_day_datetime} & Standard-library date and time operation: end of day datetime. \\
+\code{format_datetime} & Standard-library date and time operation: format datetime. \\
+\code{is_leap_year} & Standard-library date and time operation: is leap year. \\
+\code{now_utc} & read the current UTC instant as ISO-8601 text \\
+\code{parse_datetime} & Standard-library date and time operation: parse datetime. \\
+\code{start_of_day_datetime} & Standard-library date and time operation: start of day datetime. \\
+\code{today_utc} & read the current UTC date as YYYY-MM-DD \\
+\code{week_number_datetime} & Standard-library date and time operation: week number datetime. \\
+\code{weekday_datetime} & Standard-library date and time operation: weekday datetime. \\
+\bottomrule\end{longtable}
+
+\subsection{files — File and directory operations}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{append_text} & append UTF-8 text to a file \\
+\code{copy_file} & copy a file \\
+\code{exists} & test whether a path exists \\
+\code{file_size} & read file size \\
+\code{is_directory} & test whether a path is a directory \\
+\code{is_file} & test whether a path is a file \\
+\code{list_directories} & list directories directly contained in a directory \\
+\code{list_directory} & list directory entries \\
+\code{list_files} & list files directly contained in a directory \\
+\code{make_directories} & create a directory tree \\
+\code{make_directory} & create a directory \\
+\code{move_file} & move a file \\
+\code{read} & read UTF-8 text from a file \\
+\code{read_lines} & read a UTF-8 text file as lines \\
+\code{read_text} & read UTF-8 text from a file \\
+\code{remove_directory} & remove an empty directory \\
+\code{remove_directory_tree} & remove a directory tree \\
+\code{remove_file} & remove a file \\
+\code{write} & write UTF-8 text to a file \\
+\code{write_lines} & write text lines to a file \\
+\code{write_text} & write UTF-8 text to a file \\
+\bottomrule\end{longtable}
+
+\subsection{json — JSON parsing and serialization}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{json_get} & Standard-library JSON data operation: json get. \\
+\code{json_has} & Standard-library JSON data operation: json has. \\
+\code{json_parse} & Parse JSON text into an S-Lang value. \\
+\code{json_pretty} & Convert a value to indented, readable JSON text. \\
+\code{json_set} & Standard-library JSON data operation: json set. \\
+\code{json_stringify} & Convert a value to compact JSON text. \\
+\code{read_json} & read JSON from a UTF-8 file \\
+\code{write_json} & write JSON to a UTF-8 file \\
+\bottomrule\end{longtable}
+
+\subsection{math — Mathematical functions}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{abs_number} & Standard-library mathematics operation: abs number. \\
+\code{acos_number} & Standard-library mathematics operation: acos number. \\
+\code{acosh_number} & Standard-library mathematics operation: acosh number. \\
+\code{asin_number} & Standard-library mathematics operation: asin number. \\
+\code{asinh_number} & Standard-library mathematics operation: asinh number. \\
+\code{atan2_number} & Standard-library mathematics operation: atan2 number. \\
+\code{atan_number} & Standard-library mathematics operation: atan number. \\
+\code{atanh_number} & Standard-library mathematics operation: atanh number. \\
+\code{cbrt_number} & Standard-library mathematics operation: cbrt number. \\
+\code{ceil} & Standard-library mathematics operation: ceil. \\
+\code{clamp_number} & Standard-library mathematics operation: clamp number. \\
+\code{cos_number} & Standard-library mathematics operation: cos number. \\
+\code{cosh_number} & Standard-library mathematics operation: cosh number. \\
+\code{degrees_number} & Standard-library mathematics operation: degrees number. \\
+\code{exp2_number} & Standard-library mathematics operation: exp2 number. \\
+\code{exp_number} & Standard-library mathematics operation: exp number. \\
+\code{factorial_number} & Standard-library mathematics operation: factorial number. \\
+\code{floor} & Standard-library mathematics operation: floor. \\
+\code{fraction_number} & Standard-library mathematics operation: fraction number. \\
+\code{gcd_number} & Standard-library mathematics operation: gcd number. \\
+\code{hypot_number} & Standard-library mathematics operation: hypot number. \\
+\code{is_even_number} & Standard-library mathematics operation: is even number. \\
+\code{is_finite_number} & Standard-library mathematics operation: is finite number. \\
+\code{is_integer_number} & Standard-library mathematics operation: is integer number. \\
+\code{is_nan_number} & Standard-library mathematics operation: is nan number. \\
+\code{is_odd_number} & Standard-library mathematics operation: is odd number. \\
+\code{lcm_number} & Standard-library mathematics operation: lcm number. \\
+\code{lerp_number} & Standard-library mathematics operation: lerp number. \\
+\code{log10_number} & Standard-library mathematics operation: log10 number. \\
+\code{log2_number} & Standard-library mathematics operation: log2 number. \\
+\code{log_number} & Standard-library mathematics operation: log number. \\
+\code{max_of_numbers} & Standard-library mathematics operation: max of numbers. \\
+\code{min_of_numbers} & Standard-library mathematics operation: min of numbers. \\
+\code{mod_number} & Standard-library mathematics operation: mod number. \\
+\code{normalize_number} & Standard-library mathematics operation: normalize number. \\
+\code{pow_number} & Standard-library mathematics operation: pow number. \\
+\code{radians_number} & Standard-library mathematics operation: radians number. \\
+\code{reciprocal_number} & Standard-library mathematics operation: reciprocal number. \\
+\code{remap_number} & Standard-library mathematics operation: remap number. \\
+\code{round_number} & Standard-library mathematics operation: round number. \\
+\code{sign_number} & Standard-library mathematics operation: sign number. \\
+\code{sin_number} & Standard-library mathematics operation: sin number. \\
+\code{sinh_number} & Standard-library mathematics operation: sinh number. \\
+\code{sqrt} & Return the square root of a number. \\
+\code{tan_number} & Standard-library mathematics operation: tan number. \\
+\code{tanh_number} & Standard-library mathematics operation: tanh number. \\
+\code{truncate_number} & Standard-library mathematics operation: truncate number. \\
+\bottomrule\end{longtable}
+
+\subsection{path — File path handling}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{basename} & Standard-library file path handling operation: basename. \\
+\code{dirname} & Standard-library file path handling operation: dirname. \\
+\code{extension} & Standard-library file path handling operation: extension. \\
+\code{join_path} & Standard-library file path handling operation: join path. \\
+\code{normalize_path} & Standard-library file path handling operation: normalize path. \\
+\bottomrule\end{longtable}
+
+\subsection{process — Process and environment management}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{argument_at} & Standard-library process and environment management operation: argument at. \\
+\code{argument_count} & Standard-library process and environment management operation: argument count. \\
+\code{arguments} & Standard-library process and environment management operation: arguments. \\
+\code{command_exists} & Standard-library process and environment management operation: command exists. \\
+\code{current_directory} & Standard-library process and environment management operation: current directory. \\
+\code{environment} & Standard-library process and environment management operation: environment. \\
+\code{environment_or} & Standard-library process and environment management operation: environment or. \\
+\code{executable_path} & Standard-library process and environment management operation: executable path. \\
+\code{has_environment} & Standard-library process and environment management operation: has environment. \\
+\code{home_directory} & Standard-library process and environment management operation: home directory. \\
+\code{platform_name} & Standard-library process and environment management operation: platform name. \\
+\code{process_id} & Standard-library process and environment management operation: process id. \\
+\code{remove_environment} & Standard-library process and environment management operation: remove environment. \\
+\code{run_process} & Standard-library process and environment management operation: run process. \\
+\code{run_process_timeout} & Standard-library process and environment management operation: run process timeout. \\
+\code{run_program} & Run a program with an argument list. \\
+\code{run_program_timeout} & Run a program with a time limit. \\
+\code{run_program_with_environment} & Standard-library process and environment management operation: run program with environment. \\
+\code{set_environment} & Standard-library process and environment management operation: set environment. \\
+\code{sleep_seconds} & Standard-library process and environment management operation: sleep seconds. \\
+\code{temp_directory} & Standard-library process and environment management operation: temp directory. \\
+\bottomrule\end{longtable}
+
+\subsection{relational — Relational data operations}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{count_by} & Standard-library relational data operations operation: count by. \\
+\code{distinct_by} & Keep one record for each distinct field value. \\
+\code{find_by} & Standard-library relational data operations operation: find by. \\
+\code{join_records} & Join two record lists using matching key fields. \\
+\code{order_by} & Sort records by a selected field. \\
+\code{partition} & Standard-library relational data operations operation: partition. \\
+\bottomrule\end{longtable}
+
+\subsection{text — Text processing}
+\begin{longtable}{>{\ttfamily}p{0.31\textwidth}p{0.61\textwidth}}
+\toprule Function & Description \\ \midrule \endhead
+\code{char_at_text} & Standard-library text processing operation: char at text. \\
+\code{contains_text} & Standard-library text processing operation: contains text. \\
+\code{count_text} & Standard-library text processing operation: count text. \\
+\code{ends_with} & Standard-library text processing operation: ends with. \\
+\code{index_of} & Standard-library text processing operation: index of. \\
+\code{join_lines} & Standard-library text processing operation: join lines. \\
+\code{join_texts} & Join a list of text values with a separator. \\
+\code{length_text} & Standard-library text processing operation: length text. \\
+\code{lower} & Convert text to lowercase. \\
+\code{normalize_whitespace} & Standard-library text processing operation: normalize whitespace. \\
+\code{pad_left_text} & Standard-library text processing operation: pad left text. \\
+\code{pad_right_text} & Standard-library text processing operation: pad right text. \\
+\code{remove_prefix_text} & Standard-library text processing operation: remove prefix text. \\
+\code{remove_suffix_text} & Standard-library text processing operation: remove suffix text. \\
+\code{repeat_text} & Standard-library text processing operation: repeat text. \\
+\code{replace} & Standard-library text processing operation: replace. \\
+\code{reverse_text} & Standard-library text processing operation: reverse text. \\
+\code{split} & Split text into a list using a separator. \\
+\code{split_lines} & Standard-library text processing operation: split lines. \\
+\code{starts_with} & Standard-library text processing operation: starts with. \\
+\code{substring_text} & Standard-library text processing operation: substring text. \\
+\code{trim} & Remove whitespace from the beginning and end of text. \\
+\code{upper} & Convert text to uppercase. \\
+\bottomrule\end{longtable}
+
+
+\chapter{Command-Line Reference}
+\begin{longtable}{>{\ttfamily}p{0.33\textwidth}p{0.59\textwidth}}
+\toprule
+Command & Purpose \\
+\midrule
+\endhead
+\code{slang version} & Print the public compiler version. \\
+\code{slang check FILE} & Parse and semantically validate a source file. \\
+\code{slang run FILE} & Run a source file with the interpreter. \\
+\code{slang run --native-jit FILE} & Run a supported program through the in-process LLVM Native JIT. \\
+\code{slang backend-capabilities FILE} & Report backend capabilities for a source program. \\
+\code{slang init DIR} & Create a new S-Lang project. \\
+\code{slang lsp} & Start the Language Server Protocol service over standard input/output. \\
+\code{slang stdlib} & Inspect the public standard-library surface. \\
+\bottomrule
+\end{longtable}
+
+\chapter{Diagnostics and Validation Workflow}
+Use the following order when a program does not work:
+\begin{enumerate}
+\item Run \code{slang version} and confirm that the expected release is installed.
+\item Run \code{slang check FILE}. Fix syntax, name-resolution, and type errors before testing runtime behavior.
+\item Run \code{slang run FILE} to check interpreter behavior.
+\item If using Native JIT, inspect \code{slang backend-capabilities FILE} and then run \code{slang run --native-jit FILE}.
+\item When reporting a defect, include a minimal source file, the exact command, the complete diagnostic, and the operating system.
+\end{enumerate}
+A successful syntax check does not prove that every backend can execute a construct. Backend support is a separate contract.
+
+\chapter{Forms Not Included in S-Lang 1.0}
+The following forms are not part of the language grammar described by this release:
+\begin{itemize}
+\item \code{for} and \code{while} statement loops;
+\item lambda expressions such as \code{x -> x * 2};
+\item list indexing such as \code{values[0]};
+\item multi-line pipelines split across physical lines;
+\item \code{fn} as an alternative function declaration keyword;
+\item bare assignment as a universal variable declaration;
+\item a top-level \code{return} outside a valid function body.
+\end{itemize}
+Do not copy syntax from another language unless it is explicitly documented for S-Lang.
+
+\chapter{Complete Example}
+\begin{lstlisting}
+data students:
+    Alice age 22 score 91
+    Bob age 17 score 88
+    Carol age 20 score 95
+    David age 19 score 84
+
+let adults = students where age >= 18
+let ranked = adults sort by score desc
+let scores = ranked map score
+let total = scores sum item
+let average_score = scores average item
+show ranked
+show total, average_score
+\end{lstlisting}
+This example demonstrates data declarations, record-field shorthand in collection context, filtering, sorting, mapping, aggregation, and output.
+
+\chapter{Practice Exercises}
+\section{Beginner}
+\begin{enumerate}
+\item Declare two numbers and display their sum and product.
+\item Use a conditional expression to classify a score as \code{pass} or \code{fail}.
+\item Declare a mutable counter, update it twice, and display its final value.
+\end{enumerate}
+\section{Intermediate}
+\begin{enumerate}
+\item Declare a typed function that converts Celsius to Fahrenheit.
+\item Define a \code{Person} record and create two instances.
+\item Filter a numeric list, double the selected values, sort them, and calculate their sum.
+\end{enumerate}
+\section{Applied}
+\begin{enumerate}
+\item Read a CSV file, filter its records, and calculate an aggregate.
+\item Create a module that exports one public function and import it from another source file.
+\item Compare interpreter and Native JIT behavior for a program supported by both backends.
+\end{enumerate}
+
+\chapter{Language Reference and Change Control}
+The parser in \code{slang/core.py} defines accepted syntax. Semantic and type rules are implemented in \code{slang/semantic.py}, \code{slang/types.py}, and \code{slang/ast.py}. Runtime behavior is defined by the interpreter, native runtime, standard-library implementation, and tests. Editor grammars provide highlighting and language tooling; they are not normative specifications.
+
+A language change is complete only when the implementation, positive and negative conformance tests, runtime tests, editor integrations, and documentation agree. If a construct is not listed as supported, do not assume it is valid.
+
+\backmatter
+\chapter*{Release Information}
+\slang{} 1.0 is the stable public version line. The source archive includes the compiler, runtime, standard library, tests, examples, editor integrations, packaging scripts, and build workflows. The Windows runtime executable is named \code{slang1.0.exe}. End users installing a prebuilt package do not need to install Python, GCC, Clang, or LLVM separately to run the language.
+
+\end{document}

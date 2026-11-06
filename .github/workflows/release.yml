@@ -1,0 +1,383 @@
+name: S-Lang 1.0 Installers
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v1.0.*']
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows x64 installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: packaging/requirements-build.txt
+      - name: Install build tools
+        shell: powershell
+        run: |
+          choco install llvm innosetup --no-progress -y
+          python -m pip install --upgrade pip
+          python -m pip install -r packaging/requirements-build.txt
+      - name: Build runtime
+        run: python packaging/build-runtime.py
+      - name: Build installer
+        shell: powershell
+        run: |
+          if (!(Test-Path 'dist\windows-x86_64\slang1.0.exe')) { throw 'Runtime executable was not produced' }
+          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' 'packaging\windows\slang.iss'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Write-Host "Installer files:"
+          Get-ChildItem -Path . -Recurse -Filter *.exe |
+            Select-Object FullName, Length
+      - name: Verify installer
+        shell: powershell
+        run: |
+          $installer = 'packaging\windows\Output\S-Lang-1.0-Windows-x64-Setup.exe'
+          if (!(Test-Path $installer)) { throw 'Windows installer was not produced' }
+          Get-Item $installer | Format-List FullName,Length
+      - name: Prepare Windows installer artifact
+        shell: powershell
+        run: |
+          $artifact = 'dist\release-artifacts\windows-x64'
+          New-Item -ItemType Directory -Force -Path (Join-Path $artifact 'Installers') | Out-Null
+          Copy-Item 'installers\windows-x64\README.md' (Join-Path $artifact 'README.md') -Force
+          Copy-Item 'packaging\windows\Output\S-Lang-1.0-Windows-x64-Setup.exe' (Join-Path $artifact 'Installers\S-Lang-1.0-Windows-x64-Setup.exe') -Force
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: S-Lang-1.0-Windows-x64
+          path: dist/release-artifacts/windows-x64
+          if-no-files-found: error
+
+  linux:
+    name: Linux x64 installers
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: packaging/requirements-build.txt
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang dpkg-dev rpm
+          python -m pip install --upgrade pip
+          python -m pip install -r packaging/requirements-build.txt
+
+      - name: Build runtime
+        run: python packaging/build-runtime.py
+
+      - name: Verify production runtime
+        run: |
+          set -e
+
+          RUNTIME="dist/linux-x86_64/slang"
+
+          test -x "$RUNTIME"
+
+          echo "Production runtime:"
+          ls -lh "$RUNTIME"
+
+          echo "Version:"
+          "$RUNTIME" version
+
+          echo "Help:"
+          "$RUNTIME" --help
+
+          echo "Production runtime size:"
+          stat -c "%s bytes" "$RUNTIME"
+
+      - name: Diagnose Linux runtime size
+        run: python packaging/diagnose-runtime-size.py
+
+      - name: Analyze llvmlite binary
+        run: |
+          set -e
+
+          LIB=$(find dist/diagnostic/slang-diagnostic \
+            -name 'libllvmlite.so' \
+            -type f | head -1)
+
+          test -n "$LIB"
+
+          echo "Diagnostic libllvmlite.so:"
+          ls -lh "$LIB"
+
+          stat -c "Size: %s bytes" "$LIB"
+
+      - name: Test stripped llvmlite runtime
+        run: |
+          set -e
+
+          LIB=$(find dist/diagnostic/slang-diagnostic \
+            -name 'libllvmlite.so' \
+            -type f | head -1)
+
+          test -n "$LIB"
+
+          echo "Running stripped S-Lang:"
+          dist/diagnostic/slang-diagnostic/slang-diagnostic version
+
+          echo "Running stripped executable smoke test:"
+          dist/diagnostic/slang-diagnostic/slang-diagnostic --help
+
+      - name: Test stripped LLVM JIT
+        run: |
+          set -e
+
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import subprocess
+          import tempfile
+
+          runtime = Path(
+              "dist/diagnostic/slang-diagnostic/slang-diagnostic"
+          )
+
+          if not runtime.is_file():
+              raise SystemExit(
+                  f"Runtime executable not found: {runtime}"
+              )
+
+          with tempfile.TemporaryDirectory() as tmp:
+              source = Path(tmp) / "jit.sl"
+
+              source.write_text(
+                  "data numbers:\n"
+                  "    a value 1\n"
+                  "    b value 2\n"
+                  "    c value 3\n\n"
+                  "total = numbers sum value\n"
+                  "show total\n",
+                  encoding="utf-8",
+              )
+
+              env = dict(os.environ)
+              env["PATH"] = ""
+
+              completed = subprocess.run(
+                  [
+                      str(runtime),
+                      "run",
+                      "--native-jit",
+                      str(source),
+                  ],
+                  capture_output=True,
+                  text=True,
+                  env=env,
+                  check=False,
+              )
+
+              print("stdout:")
+              print(completed.stdout)
+
+              print("stderr:")
+              print(completed.stderr)
+
+              if completed.returncode != 0:
+                  raise SystemExit(
+                      "Stripped LLVM JIT failed with exit code "
+                      f"{completed.returncode}"
+                  )
+
+              output = completed.stdout.strip()
+
+              if output != "6":
+                  raise SystemExit(
+                      "Unexpected JIT output: "
+                      + repr(output)
+                  )
+
+              print(
+                  "Stripped LLVM JIT test passed: output = 6"
+              )
+          PY
+
+      - name: Test production LLVM JIT
+        run: |
+          set -e
+
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import subprocess
+          import tempfile
+
+          runtime = Path("dist/linux-x86_64/slang")
+
+          if not runtime.is_file():
+              raise SystemExit(
+                  f"Production runtime not found: {runtime}"
+              )
+
+          with tempfile.TemporaryDirectory() as tmp:
+              source = Path(tmp) / "jit.sl"
+
+              source.write_text(
+                  "data numbers:\n"
+                  "    a value 1\n"
+                  "    b value 2\n"
+                  "    c value 3\n\n"
+                  "total = numbers sum value\n"
+                  "show total\n",
+                  encoding="utf-8",
+              )
+
+              env = dict(os.environ)
+
+              # The production one-file runtime must contain
+              # the working native JIT without external clang/gcc.
+              env["PATH"] = ""
+
+              completed = subprocess.run(
+                  [
+                      str(runtime),
+                      "run",
+                      "--native-jit",
+                      str(source),
+                  ],
+                  capture_output=True,
+                  text=True,
+                  env=env,
+                  check=False,
+              )
+
+              print("stdout:")
+              print(completed.stdout)
+
+              print("stderr:")
+              print(completed.stderr)
+
+              if completed.returncode != 0:
+                  raise SystemExit(
+                      "Production LLVM JIT failed with exit code "
+                      f"{completed.returncode}"
+                  )
+
+              output = completed.stdout.strip()
+
+              if output != "6":
+                  raise SystemExit(
+                      "Unexpected production JIT output: "
+                      + repr(output)
+                  )
+
+              print(
+                  "Production LLVM JIT test passed: output = 6"
+              )
+          PY
+
+      - name: Check Linux runtime compression
+        run: |
+          set -e
+
+          tar \
+            -C dist/diagnostic \
+            -czf /tmp/slang-diagnostic.tar.gz \
+            slang-diagnostic
+
+          ls -lh /tmp/slang-diagnostic.tar.gz
+          du -sh dist/diagnostic/slang-diagnostic
+
+      - name: Make packaging scripts executable
+        run: |
+          set -e
+
+          chmod +x packaging/linux/build-deb.sh
+          chmod +x packaging/linux/build-rpm.sh
+
+      - name: Build Debian package
+        run: ./packaging/linux/build-deb.sh
+
+      - name: Build RPM package
+        run: ./packaging/linux/build-rpm.sh
+
+      - name: Verify packages
+        run: |
+          set -e
+
+          test -f dist/packages/S-Lang-1.0-linux-amd64.deb
+          test -f dist/packages/S-Lang-1.0-linux-x86_64.rpm
+
+          ls -lh dist/packages
+
+      - name: Prepare Linux installer artifact
+        run: |
+          set -e
+          artifact='dist/release-artifacts/linux-x64'
+          mkdir -p "$artifact/Installers"
+          cp installers/linux-x64/README.md "$artifact/README.md"
+          cp dist/packages/S-Lang-1.0-linux-amd64.deb "$artifact/Installers/"
+          cp dist/packages/S-Lang-1.0-linux-x86_64.rpm "$artifact/Installers/"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: S-Lang-1.0-Linux-x64
+          path: dist/release-artifacts/linux-x64
+          if-no-files-found: error
+
+  macos:
+    name: macOS ${{ matrix.arch }} installer
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15-intel
+            arch: x64
+            target: macos-x64
+          - os: macos-14
+            arch: arm64
+            target: macos-arm64
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: packaging/requirements-build.txt
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r packaging/requirements-build.txt
+      - name: Build runtime
+        run: python packaging/build-runtime.py
+        
+      - name: Make packaging script executable
+        run: chmod +x packaging/macos/build-pkg.sh
+
+      - name: Build PKG installer
+        run: |
+          test -f "dist/${{ matrix.target }}/slang"
+          ./packaging/macos/build-pkg.sh
+          
+      - name: Verify installer
+        run: |
+          test -f "dist/packages/S-Lang-1.0-macos-${{ matrix.arch }}.pkg"
+          ls -lh dist/packages
+      - name: Prepare macOS installer artifact
+        run: |
+          set -e
+          artifact="dist/release-artifacts/macos-${{ matrix.arch }}"
+          mkdir -p "$artifact/Installers"
+          cp "installers/macos-${{ matrix.arch }}/README.md" "$artifact/README.md"
+          cp "dist/packages/S-Lang-1.0-macos-${{ matrix.arch }}.pkg" "$artifact/Installers/"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: S-Lang-1.0-macOS-${{ matrix.arch }}
+          path: dist/release-artifacts/macos-${{ matrix.arch }}
+          if-no-files-found: error

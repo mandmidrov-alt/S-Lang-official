@@ -1,0 +1,172 @@
+[
+  {
+    "task": "sales_pipeline",
+    "outputs": {
+      "slang": "show = [C(price=20, quantity=2, region=1), E(price=12, quantity=1, region=1), A(price=10, quantity=3, region=1)]\nshow = [40, 12, 30]\nshow = 82",
+      "python": "['C', 'E', 'A']\n[40, 12, 30]\n82",
+      "cpp": "C E A \n40 12 30 \n82"
+    },
+    "metrics": {
+      "slang": {
+        "lines": 13,
+        "explicit_loops": 0,
+        "list_comprehensions": 0,
+        "lambda": 0,
+        "manual_accumulator": 3,
+        "indexing": 0
+      },
+      "python": {
+        "lines": 10,
+        "explicit_loops": 3,
+        "list_comprehensions": 3,
+        "lambda": 1,
+        "manual_accumulator": 3,
+        "indexing": 5
+      },
+      "cpp": {
+        "lines": 11,
+        "explicit_loops": 1,
+        "list_comprehensions": 0,
+        "lambda": 0,
+        "manual_accumulator": 2,
+        "indexing": 0
+      }
+    }
+  },
+  {
+    "task": "student_ranking",
+    "outputs": {
+      "slang": "show = [Carol(age=31, score=95), Alice(age=22, score=91), Eve(age=25, score=90), Frank(age=20, score=84)]\nshow = [95, 91, 90, 84]\nshow = 95\nshow = 90",
+      "python": "['Carol', 'Alice', 'Eve', 'Frank']\n[95, 91, 90, 84]\n95\n90.0",
+      "cpp": "Carol Alice Eve Frank \n95 91 90 84 \n95\n90"
+    },
+    "metrics": {
+      "slang": {
+        "lines": 16,
+        "explicit_loops": 0,
+        "list_comprehensions": 0,
+        "lambda": 0,
+        "manual_accumulator": 3,
+        "indexing": 0
+      },
+      "python": {
+        "lines": 5,
+        "explicit_loops": 3,
+        "list_comprehensions": 3,
+        "lambda": 1,
+        "manual_accumulator": 3,
+        "indexing": 4
+      },
+      "cpp": {
+        "lines": 2,
+        "explicit_loops": 0,
+        "list_comprehensions": 0,
+        "lambda": 0,
+        "manual_accumulator": 2,
+        "indexing": 0
+      }
+    }
+  },
+  {
+    "task": "inventory_aggregation",
+    "outputs": {
+      "slang": "show = [250.0, 240, 320, 250]\nshow = 1060\nshow = 240\nshow = 320",
+      "python": "[250.0, 240, 320, 250]\n1060.0\n240\n320",
+      "cpp": "250 240 320 250\n1060\n240\n320"
+    },
+    "metrics": {
+      "slang": {
+        "lines": 13,
+        "explicit_loops": 0,
+        "list_comprehensions": 0,
+        "lambda": 0,
+        "manual_accumulator": 3,
+        "indexing": 0
+      },
+      "python": {
+        "lines": 3,
+        "explicit_loops": 0,
+        "list_comprehensions": 1,
+        "lambda": 0,
+        "manual_accumulator": 1,
+        "indexing": 0
+      },
+      "cpp": {
+        "lines": 1,
+        "explicit_loops": 0,
+        "list_comprehensions": 0,
+        "lambda": 0,
+        "manual_accumulator": 0,
+        "indexing": 4
+      }
+    }
+  },
+  {
+    "task": "two_body_physics",
+    "outputs": {
+      "slang": "show = 152194895551.048 m\nshow = 30283.7889471754 mps",
+      "python": "152194895551.0479\n30283.78894717536",
+      "cpp": "152194895551.048\n30283.7889471754"
+    },
+    "metrics": {
+      "slang": {
+        "lines": 9,
+        "explicit_loops": 0,
+        "list_comprehensions": 0,
+        "lambda": 0,
+        "manual_accumulator": 0,
+        "indexing": 0
+      },
+      "python": {
+        "lines": 10,
+        "explicit_loops": 1,
+        "list_comprehensions": 0,
+        "lambda": 0,
+        "manual_accumulator": 0,
+        "indexing": 0
+      },
+      "cpp": {
+        "lines": 6,
+        "explicit_loops": 0,
+        "list_comprehensions": 0,
+        "lambda": 0,
+        "manual_accumulator": 0,
+        "indexing": 0
+      }
+    }
+  },
+  {
+    "task": "circle_geometry",
+    "outputs": {
+      "slang": "show = 314.159265358979 m2\nshow = 62.8318530717959 m",
+      "python": "area = 314.159265358979 m2\ncircumference = 62.8318530717959 m",
+      "cpp": "area = 314.159265358979 m2\ncircumference = 62.8318530717959 m"
+    },
+    "metrics": {
+      "slang": {
+        "lines": 4,
+        "explicit_loops": 0,
+        "list_comprehensions": 0,
+        "lambda": 0,
+        "manual_accumulator": 0,
+        "indexing": 0
+      },
+      "python": {
+        "lines": 4,
+        "explicit_loops": 0,
+        "list_comprehensions": 0,
+        "lambda": 0,
+        "manual_accumulator": 0,
+        "indexing": 0
+      },
+      "cpp": {
+        "lines": 6,
+        "explicit_loops": 0,
+        "list_comprehensions": 0,
+        "lambda": 0,
+        "manual_accumulator": 0,
+        "indexing": 0
+      }
+    }
+  }
+]

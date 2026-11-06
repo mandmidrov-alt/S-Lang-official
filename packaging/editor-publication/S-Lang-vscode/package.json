@@ -1,0 +1,191 @@
+{
+  "name": "slang-language",
+  "displayName": "S-Lang Language Support",
+  "description": "S-Lang 1.0 language support with syntax highlighting and Language Server integration.",
+  "version": "1.0.0",
+  "publisher": "slang-language",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mandmidrov-alt/S-Lang-official"
+  },
+  "engines": {
+    "vscode": ">=1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Snippets"
+  ],
+  "keywords": [
+    "S-Lang",
+    "slang",
+    "language server",
+    "LSP"
+  ],
+  "activationEvents": [
+    "workspaceContains:slang.toml",
+    "onLanguage:slang"
+  ],
+  "main": "extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "slang",
+        "aliases": [
+          "S-Lang",
+          "slang"
+        ],
+        "extensions": [
+          ".sl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "slang",
+        "scopeName": "source.slang",
+        "path": "./syntaxes/slang.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "slang",
+        "path": "./snippets/slang.json"
+      }
+    ],
+    "configuration": {
+      "title": "S-Lang",
+      "properties": {
+        "slang.serverPath": {
+          "type": "string",
+          "default": "slang",
+          "description": "Path or command used to start the S-Lang Language Server. On Windows, select slang1.0.exe; the extension can discover the executable and save its absolute path in User settings.",
+          "scope": "resource"
+        },
+        "slang.diagnostics.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable S-Lang diagnostics from the Language Server.",
+          "scope": "resource"
+        },
+        "slang.diagnostics.maxProblems": {
+          "type": "number",
+          "default": 100,
+          "minimum": 0,
+          "description": "Maximum number of diagnostics reported by the S-Lang Language Server.",
+          "scope": "resource"
+        },
+        "slang.project.autoStartLanguageServer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically start the S-Lang Language Server when an S-Lang workspace is opened.",
+          "scope": "resource"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "slang.configureServerPath",
+        "title": "S-Lang: Configure Executable"
+      },
+      {
+        "command": "slang.runFile",
+        "title": "S-Lang: Run Current File"
+      },
+      {
+        "command": "slang.checkFile",
+        "title": "S-Lang: Check Current File"
+      },
+      {
+        "command": "slang.runNativeJit",
+        "title": "S-Lang: Run Current File with Native JIT"
+      },
+      {
+        "command": "slang.restartLanguageServer",
+        "title": "S-Lang: Restart Language Server"
+      },
+      {
+        "command": "slang.runProject",
+        "title": "S-Lang: Run Project"
+      },
+      {
+        "command": "slang.checkProject",
+        "title": "S-Lang: Check Project"
+      },
+      {
+        "command": "slang.runProjectNativeJit",
+        "title": "S-Lang: Run Project with Native JIT"
+      },
+      {
+        "command": "slang.showProject",
+        "title": "S-Lang: Show Project Information"
+      },
+      {
+        "command": "slang.initProject",
+        "title": "S-Lang: Initialize Project"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "slang.runFile",
+          "when": "editorLangId == slang",
+          "group": "navigation@1"
+        },
+        {
+          "command": "slang.checkFile",
+          "when": "editorLangId == slang",
+          "group": "navigation@2"
+        },
+        {
+          "command": "slang.runProject",
+          "when": "editorLangId == slang",
+          "group": "navigation@3"
+        },
+        {
+          "command": "slang.checkProject",
+          "when": "editorLangId == slang",
+          "group": "navigation@4"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "slang.runFile",
+          "when": "resourceExtname == .sl",
+          "group": "navigation@1"
+        },
+        {
+          "command": "slang.runProject",
+          "when": "resourceExtname == .sl",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "taskDefinitions": [
+      {
+        "type": "slang",
+        "required": [
+          "task"
+        ],
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "S-Lang project task name."
+          }
+        }
+      }
+    ]
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.2.2"
+  },
+  "scripts": {
+    "package": "vsce package",
+    "validate": "node -e \"JSON.parse(require('fs').readFileSync('package.json','utf8')); JSON.parse(require('fs').readFileSync('language-configuration.json','utf8')); JSON.parse(require('fs').readFileSync('syntaxes/slang.tmLanguage.json','utf8')); JSON.parse(require('fs').readFileSync('snippets/slang.json','utf8')); console.log('S-Lang VS Code extension metadata OK')\""
+  },
+  "icon": "icon.png"
+}

@@ -1,0 +1,170 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "S-Lang",
+  "scopeName": "source.slang",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#types"
+    },
+    {
+      "include": "#constants"
+    },
+    {
+      "include": "#declarations"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#functions"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.slang",
+          "begin": "#",
+          "end": "$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.slang",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.slang",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.slang",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.slang",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.slang",
+          "match": "\\b(?:0[xX][0-9A-Fa-f]+|0[bB][01]+|(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?)\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.slang",
+          "match": "\\b(?:let|state|set|show|if|then|else|for|while|return|function|record|entity|property|data|graph|physics|body|circle|simulate|sequence|module|import|export|private|from|as|in|where|map|sort|by|asc|desc|reduce|sum|count|max|min|average|avg|any|all|tee|choose|minimizing|maximizing|find|path|goal|satisfy|until|steps|step|using|cost|value)\\b"
+        },
+        {
+          "name": "keyword.operator.logical.slang",
+          "match": "\\b(?:and|or|not)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "support.type.slang",
+          "match": "\\b(?:Number|Text|Bool|Boolean|Integer|Float|String|Date|DateTime|List|Record|Any|Unit|Void|Optional|Result)\\b"
+        },
+        {
+          "name": "constant.other.unit.slang",
+          "match": "\\b(?:kg|m|m2|s|mps|mps2|N|m3_per_kg_s2|second|seconds|minute|minutes|hour|hours|day|days)\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.slang",
+          "match": "\\b(?:true|false|null|none)\\b"
+        }
+      ]
+    },
+    "declarations": {
+      "patterns": [
+        {
+          "match": "\\bfunction\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.slang"
+            }
+          }
+        },
+        {
+          "match": "\\b(?:record|entity|module|data|graph|body|circle)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": {
+              "name": "entity.name.type.slang"
+            }
+          }
+        },
+        {
+          "match": "\\bproperty\\s+([A-Za-z_][A-Za-z0-9_]*)\\.([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": {
+              "name": "entity.name.type.slang"
+            },
+            "2": {
+              "name": "entity.name.function.slang"
+            }
+          }
+        },
+        {
+          "match": "\\b(?:let|state|set)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": {
+              "name": "variable.other.slang"
+            }
+          }
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.slang",
+          "match": "(?:\\|>|<->|->|==|!=|<=|>=|=>|\\+|-|\\*|/|%|\\^|<|>|=|:|\\.\\.)"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "entity.name.function.call.slang",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*(?=\\s*\\()"
+        },
+        {
+          "name": "variable.language.slang",
+          "match": "\\b(?:item|row|acc|self)\\b"
+        }
+      ]
+    }
+  }
+}

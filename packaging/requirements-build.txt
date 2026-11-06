@@ -1,0 +1,3 @@
+# Build-time dependencies only. End users do not need Python, PyInstaller or llvmlite.
+PyInstaller==6.16.0
+llvmlite==0.45.1

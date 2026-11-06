@@ -1,0 +1,66 @@
+name: S-Lang tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  full-regression:
+    name: Full regression suite (Ubuntu)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . pytest llvmlite==0.45.1
+      - name: Run complete regression suite
+        run: python -m pytest -q
+
+  native-multi-aggregate:
+    name: Native multi-aggregate (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            os: windows-latest
+          - name: macOS Intel
+            os: macos-15-intel
+          - name: macOS ARM64
+            os: macos-14
+          - name: Linux x64
+            os: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install Windows LLVM
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: choco install llvm --no-progress -y
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . pytest llvmlite==0.45.1
+      - name: Verify native multi-aggregate behavior
+        run: >-
+          python -m pytest -q
+          tests/test_native_multi_aggregate_collections_1087.py
+          tests/test_native_multi_aggregate_edge_cases_1088.py
+          tests/test_native_multi_aggregate_runtime_parity_1088.py
+          tests/test_native_record_sort_rebinding_multi_aggregate_1088.py

@@ -1,0 +1,6 @@
+name = "S-Lang"
+grammar = "slang"
+path_suffixes = ["sl"]
+line_comments = ["#"]
+tab_size = 4
+hard_tabs = false

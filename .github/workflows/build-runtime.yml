@@ -1,0 +1,85 @@
+name: Build S-Lang 1.0 runtime
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v1.0.*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            os: windows-latest
+            artifact: slang-windows-x64
+            executable: dist/windows-x86_64/slang1.0.exe
+          - name: macOS Intel
+            os: macos-15-intel
+            artifact: slang-macos-x64
+            executable: dist/macos-x64/slang
+          - name: macOS ARM64
+            os: macos-14
+            artifact: slang-macos-arm64
+            executable: dist/macos-arm64/slang
+          - name: Linux x64
+            os: ubuntu-24.04
+            artifact: slang-linux-x64
+            executable: dist/linux-x86_64/slang
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: packaging/requirements-build.txt
+
+      - name: Install Windows compiler
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: choco install llvm --no-progress -y
+
+      - name: Install build dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r packaging/requirements-build.txt
+
+      - name: Install pytest
+        run: python -m pip install pytest
+
+      - name: Test native multi-aggregate feature
+        run: >-
+          python -m pytest -q
+          tests/test_native_multi_aggregate_collections_1087.py
+          tests/test_native_multi_aggregate_edge_cases_1088.py
+          tests/test_native_multi_aggregate_runtime_parity_1088.py
+          tests/test_native_record_sort_rebinding_multi_aggregate_1088.py
+
+      - name: Build and smoke-test executable
+        run: python packaging/build-runtime.py
+
+      - name: Verify executable path
+        shell: bash
+        run: |
+          test -f "${{ matrix.executable }}"
+          ls -lh "${{ matrix.executable }}"
+
+      - name: Test bundled native runtime with CSV under LLVM JIT
+        run: python packaging/smoke_frozen_native_runtime.py --executable "${{ matrix.executable }}"
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.executable }}
+          if-no-files-found: error

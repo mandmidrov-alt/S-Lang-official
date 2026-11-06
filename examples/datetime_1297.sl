@@ -1,0 +1,6 @@
+current = now_utc()
+today = today_utc()
+normalized = parse_datetime("2026-09-27T12:00:00Z", "")
+later = add_seconds_datetime(normalized, 3600)
+formatted = format_datetime(later, "%Y-%m-%d %H:%M:%S UTC")
+elapsed = diff_seconds_datetime(normalized, later)

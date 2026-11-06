@@ -1,0 +1,41 @@
+{
+  "Function": {
+    "prefix": "function",
+    "body": [
+      "function ${1:name}(${2:argument}: ${3:Number}) -> ${4:Number}:",
+      "    ${5:return ${2:argument}}"
+    ],
+    "description": "S-Lang function"
+  },
+  "Data": {
+    "prefix": "data",
+    "body": [
+      "data ${1:name}:",
+      "    ${2:item} ${3:value} ${4:1}"
+    ],
+    "description": "S-Lang data block"
+  },
+  "State": {
+    "prefix": "state",
+    "body": [
+      "state ${1:name} = ${2:0}",
+      "set ${1:name} = ${3:${1:name} + 1}",
+      "show ${1:name}"
+    ],
+    "description": "S-Lang state declaration"
+  },
+  "Pipeline": {
+    "prefix": "pipeline",
+    "body": [
+      "${1:source} |> where ${2:condition} |> map ${3:value}"
+    ],
+    "description": "S-Lang pipeline"
+  },
+  "Project main": {
+    "prefix": "main",
+    "body": [
+      "show ${1:\"Hello, S-Lang\"}"
+    ],
+    "description": "Minimal S-Lang program"
+  }
+}

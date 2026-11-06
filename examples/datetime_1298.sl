@@ -1,0 +1,6 @@
+start = parse_datetime("2026-01-31T12:30:00Z", "")
+next_day = add_days_datetime(start, 1)
+next_month = add_months_datetime(start, 1)
+day_start = start_of_day_datetime(start)
+day_end = end_of_day_datetime(start)
+parts = date_components_datetime(start)

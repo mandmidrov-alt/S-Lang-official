@@ -1,0 +1,49 @@
+name: Build S-Lang editor packages
+
+on:
+  push:
+    tags:
+      - 'v1.0.*'
+  workflow_dispatch:
+
+jobs:
+  editor-packages:
+    name: Package editor integrations
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+
+      - name: Build Neovim, Emacs and Zed packages
+        run: |
+          python packaging/build-editor-packages.py --version 1.0.0
+
+      - name: Install VS Code extension dependencies
+        working-directory: editors/vscode-slang
+        run: npm install --no-audit --no-fund
+
+      - name: Validate VS Code extension
+        working-directory: editors/vscode-slang
+        run: npm run validate
+
+      - name: Build VSIX
+        working-directory: editors/vscode-slang
+        run: npm run package
+
+      - name: Collect VSIX
+        run: cp editors/vscode-slang/*.vsix dist/editors/
+
+      - name: Upload editor packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: S-Lang-1.0.0-editor-packages
+          path: dist/editors/*
+          if-no-files-found: error
