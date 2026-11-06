@@ -5,7 +5,14 @@
 #include <stdint.h>
 #include <limits.h>
 #include <math.h>
-void slang_print_result(double position, double velocity) {
+
+#if defined(_WIN32)
+#define SLANG_API __declspec(dllexport)
+#else
+#define SLANG_API
+#endif
+
+SLANG_API void slang_print_result(double position, double velocity) {
     printf("earth.position = %.15g m\n", position);
     printf("earth.velocity = %.15g mps\n", velocity);
 }
@@ -13,7 +20,7 @@ void slang_print_result(double position, double velocity) {
 /* Stable opaque ABI for native List<Number> values. The list owns its buffer. */
 typedef struct { size_t count; double *items; } SlangNumberList;
 
-SlangNumberList *slang_number_list_new(size_t count) {
+SLANG_API SlangNumberList *slang_number_list_new(size_t count) {
     SlangNumberList *list = (SlangNumberList *)calloc(1, sizeof(SlangNumberList));
     if (!list) return NULL;
     list->count = count;
@@ -22,7 +29,7 @@ SlangNumberList *slang_number_list_new(size_t count) {
     return list;
 }
 
-int slang_number_list_append(SlangNumberList *list, double value) {
+SLANG_API int slang_number_list_append(SlangNumberList *list, double value) {
     if (!list || list->count >= (size_t)LONG_MAX) return 0;
     double *grown = (double *)realloc(list->items, (list->count + 1) * sizeof(double));
     if (!grown) return 0;
@@ -31,28 +38,28 @@ int slang_number_list_append(SlangNumberList *list, double value) {
     return 1;
 }
 
-int slang_number_list_set(SlangNumberList *list, size_t index, double value) {
+SLANG_API int slang_number_list_set(SlangNumberList *list, size_t index, double value) {
     if (!list || index >= list->count) return 0;
     list->items[index] = value;
     return 1;
 }
 
-long slang_number_list_count(const SlangNumberList *list) {
+SLANG_API long slang_number_list_count(const SlangNumberList *list) {
     return list ? (long)list->count : 0;
 }
 
-double slang_number_list_item(const SlangNumberList *list, long index) {
+SLANG_API double slang_number_list_item(const SlangNumberList *list, long index) {
     if (!list || index < 0 || (size_t)index >= list->count) return 0.0;
     return list->items[index];
 }
 
-void slang_number_list_free(SlangNumberList *list) {
+SLANG_API void slang_number_list_free(SlangNumberList *list) {
     if (!list) return;
     free(list->items);
     free(list);
 }
 
-double slang_reduce_f64(const double *values, long count, double initial, int op) {
+SLANG_API double slang_reduce_f64(const double *values, long count, double initial, int op) {
     double acc = initial;
     for (long i = 0; i < count; ++i) {
         switch (op) {
@@ -79,12 +86,12 @@ double slang_reduce_f64(const double *values, long count, double initial, int op
 #define SLANG_S_ISDIR(mode) S_ISDIR(mode)
 #endif
 
-int slang_file_exists(const char *path) {
+SLANG_API int slang_file_exists(const char *path) {
     struct stat st;
     return path != NULL && stat(path, &st) == 0;
 }
 
-double slang_file_size(const char *path) {
+SLANG_API double slang_file_size(const char *path) {
     struct stat st;
     if (path == NULL || stat(path, &st) != 0) {
         fprintf(stderr, "S-Lang: file_size failed: %s\n", path ? strerror(errno) : "null path");
@@ -93,17 +100,17 @@ double slang_file_size(const char *path) {
     return (double)st.st_size;
 }
 
-int slang_is_file(const char *path) {
+SLANG_API int slang_is_file(const char *path) {
     struct stat st;
     return path != NULL && stat(path, &st) == 0 && SLANG_S_ISREG(st.st_mode);
 }
 
-int slang_is_directory(const char *path) {
+SLANG_API int slang_is_directory(const char *path) {
     struct stat st;
     return path != NULL && stat(path, &st) == 0 && SLANG_S_ISDIR(st.st_mode);
 }
 
-int slang_file_write(const char *path, const char *text) {
+SLANG_API int slang_file_write(const char *path, const char *text) {
     if (path == NULL || text == NULL) return 0;
     FILE *f = fopen(path, "wb");
     if (!f) return 0;
@@ -115,7 +122,7 @@ int slang_file_write(const char *path, const char *text) {
 }
 
 
-char *slang_file_read(const char *path) {
+SLANG_API char *slang_file_read(const char *path) {
     if (path == NULL) return NULL;
     FILE *f = fopen(path, "rb");
     if (!f) { fprintf(stderr, "S-Lang: read failed: %s\n", path); exit(1); }
@@ -134,7 +141,7 @@ char *slang_file_read(const char *path) {
 
 static char *slang_strdup(const char *s);
 
-char *slang_text_trim(const char *text) {
+SLANG_API char *slang_text_trim(const char *text) {
     if (!text) return NULL;
     const char *start = text;
     while (*start && isspace((unsigned char)*start)) ++start;
@@ -160,22 +167,22 @@ static char *slang_text_case(const char *text, int upper) {
     return out;
 }
 
-char *slang_text_lower(const char *text) { return slang_text_case(text, 0); }
-char *slang_text_upper(const char *text) { return slang_text_case(text, 1); }
+SLANG_API char *slang_text_lower(const char *text) { return slang_text_case(text, 0); }
+SLANG_API char *slang_text_upper(const char *text) { return slang_text_case(text, 1); }
 
-int slang_text_starts_with(const char *text, const char *prefix) {
+SLANG_API int slang_text_starts_with(const char *text, const char *prefix) {
     if (!text || !prefix) return 0;
     size_t n = strlen(prefix);
     return strncmp(text, prefix, n) == 0;
 }
 
-int slang_text_ends_with(const char *text, const char *suffix) {
+SLANG_API int slang_text_ends_with(const char *text, const char *suffix) {
     if (!text || !suffix) return 0;
     size_t n = strlen(text), m = strlen(suffix);
     return m <= n && memcmp(text + n - m, suffix, m) == 0;
 }
 
-char *slang_text_replace(const char *text, const char *old_text, const char *new_text) {
+SLANG_API char *slang_text_replace(const char *text, const char *old_text, const char *new_text) {
     if (!text || !old_text || !new_text) return NULL;
     size_t old_n = strlen(old_text), new_n = strlen(new_text), text_n = strlen(text);
     if (old_n == 0) return slang_strdup(text);
@@ -195,14 +202,14 @@ char *slang_text_replace(const char *text, const char *old_text, const char *new
     return out;
 }
 
-void slang_text_free(char *text) { free(text); }
+SLANG_API void slang_text_free(char *text) { free(text); }
 
 typedef struct { size_t count; char **items; } SlangTextList;
-SlangTextList *slang_text_list_new(size_t count);
-int slang_text_list_set(SlangTextList *list, size_t index, const char *value);
-void slang_text_list_free(SlangTextList *list);
+SLANG_API SlangTextList *slang_text_list_new(size_t count);
+SLANG_API int slang_text_list_set(SlangTextList *list, size_t index, const char *value);
+SLANG_API void slang_text_list_free(SlangTextList *list);
 
-SlangTextList *slang_text_split(const char *text, const char *separator) {
+SLANG_API SlangTextList *slang_text_split(const char *text, const char *separator) {
     if (!text || !separator) return NULL;
     size_t sep_n = strlen(separator);
     if (sep_n == 0) {
@@ -231,7 +238,7 @@ SlangTextList *slang_text_split(const char *text, const char *separator) {
 }
 
 
-SlangTextList *slang_file_read_lines(const char *path) {
+SLANG_API SlangTextList *slang_file_read_lines(const char *path) {
     char *text = slang_file_read(path);
     if (!text) return NULL;
     size_t capacity = 8, count = 0;
@@ -263,18 +270,18 @@ SlangTextList *slang_file_read_lines(const char *path) {
     list->count=count; list->items=items; return list;
 }
 
-long slang_text_list_count(const SlangTextList *list) { return list ? (long)list->count : 0; }
-const char *slang_text_list_item(const SlangTextList *list, long index) {
+SLANG_API long slang_text_list_count(const SlangTextList *list) { return list ? (long)list->count : 0; }
+SLANG_API const char *slang_text_list_item(const SlangTextList *list, long index) {
     if (!list || index < 0 || (size_t)index >= list->count) return "";
     return list->items[index];
 }
-void slang_text_list_free(SlangTextList *list) {
+SLANG_API void slang_text_list_free(SlangTextList *list) {
     if (!list) return;
     for (size_t i=0;i<list->count;++i) free(list->items[i]);
     free(list->items); free(list);
 }
 
-SlangTextList *slang_text_list_new(size_t count) {
+SLANG_API SlangTextList *slang_text_list_new(size_t count) {
     SlangTextList *list = (SlangTextList *)calloc(1, sizeof(SlangTextList));
     if (!list) return NULL;
     list->count = count;
@@ -283,7 +290,7 @@ SlangTextList *slang_text_list_new(size_t count) {
     return list;
 }
 
-int slang_text_list_set(SlangTextList *list, size_t index, const char *value) {
+SLANG_API int slang_text_list_set(SlangTextList *list, size_t index, const char *value) {
     if (!list || index >= list->count) return 0;
     char *copy = slang_strdup(value ? value : "");
     if (!copy) return 0;
@@ -293,7 +300,7 @@ int slang_text_list_set(SlangTextList *list, size_t index, const char *value) {
 }
 
 
-int slang_file_write_lines(const char *path, const SlangTextList *list) {
+SLANG_API int slang_file_write_lines(const char *path, const SlangTextList *list) {
     if (path == NULL || list == NULL) return 0;
     FILE *f = fopen(path, "wb");
     if (!f) return 0;
@@ -318,7 +325,7 @@ static char *slang_strdup(const char *s) {
     return out;
 }
 
-char *slang_path_basename(const char *path) {
+SLANG_API char *slang_path_basename(const char *path) {
     if (!path) return NULL;
     const char *end = path + strlen(path);
     while (end > path && (end[-1] == '/' || end[-1] == '\\')) --end;
@@ -332,7 +339,7 @@ char *slang_path_basename(const char *path) {
     return out;
 }
 
-char *slang_path_dirname(const char *path) {
+SLANG_API char *slang_path_dirname(const char *path) {
     if (!path || !*path) return slang_strdup(".");
     const char *end = path + strlen(path);
     while (end > path + 1 && (end[-1] == '/' || end[-1] == '\\')) --end;
@@ -347,7 +354,7 @@ char *slang_path_dirname(const char *path) {
     return out;
 }
 
-char *slang_path_extension(const char *path) {
+SLANG_API char *slang_path_extension(const char *path) {
     if (!path) return NULL;
     const char *end = path + strlen(path);
     while (end > path && (end[-1] == '/' || end[-1] == '\\')) --end;
@@ -359,7 +366,7 @@ char *slang_path_extension(const char *path) {
     return slang_strdup(dot - 1);
 }
 
-char *slang_path_join(const char *first, const char *second) {
+SLANG_API char *slang_path_join(const char *first, const char *second) {
     if (!first) return slang_strdup(second ? second : "");
     if (!second) return slang_strdup(first);
     size_t a = strlen(first), b = strlen(second);
@@ -374,7 +381,7 @@ char *slang_path_join(const char *first, const char *second) {
     return out;
 }
 
-char *slang_path_normalize(const char *path) {
+SLANG_API char *slang_path_normalize(const char *path) {
     if (!path) return NULL;
     size_t n = strlen(path);
     char *out = (char *)malloc(n + 1);
@@ -410,12 +417,12 @@ char *slang_path_normalize(const char *path) {
 #define SLANG_RMDIR(path) rmdir(path)
 #endif
 
-int slang_make_directory(const char *path) {
+SLANG_API int slang_make_directory(const char *path) {
     if (path == NULL) return 0;
     return SLANG_MKDIR(path) == 0;
 }
 
-int slang_remove_directory(const char *path) {
+SLANG_API int slang_remove_directory(const char *path) {
     if (path == NULL) return 0;
     return SLANG_RMDIR(path) == 0;
 }
@@ -427,7 +434,7 @@ static int slang_text_compare(const void *a, const void *b) {
 }
 
 #if defined(_WIN32)
-SlangTextList *slang_file_list_directory(const char *path) {
+SLANG_API SlangTextList *slang_file_list_directory(const char *path) {
     if (path == NULL) return NULL;
     size_t base_len = strlen(path);
     const char *sep = (base_len > 0 && (path[base_len-1] == '\\' || path[base_len-1] == '/')) ? "" : "\\";
@@ -475,7 +482,7 @@ SlangTextList *slang_file_list_directory(const char *path) {
     list->count = count; list->items = items; return list;
 }
 #else
-SlangTextList *slang_file_list_directory(const char *path) {
+SLANG_API SlangTextList *slang_file_list_directory(const char *path) {
     if (path == NULL) return NULL;
     DIR *dir = opendir(path);
     if (!dir) return NULL;
@@ -516,7 +523,7 @@ SlangTextList *slang_file_list_directory(const char *path) {
 #endif
 
 /* Process context ------------------------------------------------------- */
-SlangTextList *slang_process_arguments(int argc, char **argv) {
+SLANG_API SlangTextList *slang_process_arguments(int argc, char **argv) {
     size_t count = argc > 1 ? (size_t)(argc - 1) : 0;
     SlangTextList *list = (SlangTextList *)malloc(sizeof(SlangTextList));
     if (!list) return NULL;
@@ -557,7 +564,7 @@ static char *slang_read_handle(HANDLE h) {
     return buf;
 }
 
-SlangTextList *slang_process_run(const char *command) {
+SLANG_API SlangTextList *slang_process_run(const char *command) {
     if (!command) return NULL;
     SECURITY_ATTRIBUTES sa = { sizeof(SECURITY_ATTRIBUTES), NULL, TRUE };
     HANDLE out_r = NULL, out_w = NULL, err_r = NULL, err_w = NULL;
@@ -590,7 +597,7 @@ SlangTextList *slang_process_run(const char *command) {
 #include <sys/wait.h>
 #include <sys/select.h>
 #include <unistd.h>
-SlangTextList *slang_process_run(const char *command) {
+SLANG_API SlangTextList *slang_process_run(const char *command) {
     if (!command) return NULL;
     int out_pipe[2], err_pipe[2];
     if (pipe(out_pipe) != 0 || pipe(err_pipe) != 0) return NULL;
@@ -638,7 +645,7 @@ static int slang_append_arg(char **buf, size_t *len, size_t *cap, const char *ar
     (*buf)[*len]='\0'; return 1;
 }
 
-SlangTextList *slang_process_run_program(const char *program, const SlangTextList *args, const char *cwd) {
+SLANG_API SlangTextList *slang_process_run_program(const char *program, const SlangTextList *args, const char *cwd) {
     if (!program || !*program) return NULL;
     SECURITY_ATTRIBUTES sa={sizeof(SECURITY_ATTRIBUTES),NULL,TRUE}; HANDLE out_r=NULL,out_w=NULL,err_r=NULL,err_w=NULL;
     if(!CreatePipe(&out_r,&out_w,&sa,0)||!CreatePipe(&err_r,&err_w,&sa,0)) return NULL;
@@ -653,7 +660,7 @@ SlangTextList *slang_process_run_program(const char *program, const SlangTextLis
     if(!out||!err){free(out);free(err);return NULL;} char status[32];snprintf(status,sizeof(status),"%lu",(unsigned long)code);SlangTextList *list=slang_text_list_new(3);if(!list){free(out);free(err);return NULL;}list->items[0]=slang_strdup(status);list->items[1]=out;list->items[2]=err;if(!list->items[0]){slang_text_list_free(list);return NULL;}return list;
 }
 #else
-SlangTextList *slang_process_run_program(const char *program, const SlangTextList *args, const char *cwd) {
+SLANG_API SlangTextList *slang_process_run_program(const char *program, const SlangTextList *args, const char *cwd) {
     if(!program||!*program) return NULL; int out_pipe[2],err_pipe[2]; if(pipe(out_pipe)!=0||pipe(err_pipe)!=0)return NULL; pid_t pid=fork(); if(pid<0)return NULL;
     if(pid==0){
         dup2(out_pipe[1],STDOUT_FILENO);dup2(err_pipe[1],STDERR_FILENO);close(out_pipe[0]);close(out_pipe[1]);close(err_pipe[0]);close(err_pipe[1]);
@@ -694,7 +701,7 @@ static char *slang_build_windows_environment(const SlangTextList *overrides) {
     }
     block[len]='\0'; FreeEnvironmentStringsA(base); return block;
 }
-SlangTextList *slang_process_run_program_env(const char *program, const SlangTextList *args, const char *cwd, const SlangTextList *overrides) {
+SLANG_API SlangTextList *slang_process_run_program_env(const char *program, const SlangTextList *args, const char *cwd, const SlangTextList *overrides) {
     if(!program||!*program)return NULL;
     SECURITY_ATTRIBUTES sa={sizeof(SECURITY_ATTRIBUTES),NULL,TRUE}; HANDLE out_r=NULL,out_w=NULL,err_r=NULL,err_w=NULL;
     if(!CreatePipe(&out_r,&out_w,&sa,0)||!CreatePipe(&err_r,&err_w,&sa,0))return NULL;
@@ -727,7 +734,7 @@ static void slang_exec_env(const char *program,char *const argv[],char *const en
     const char *path=NULL;for(char *const *e=envp;*e;++e)if(strncmp(*e,"PATH=",5)==0){path=*e+5;break;}if(!path)path="/usr/local/bin:/usr/bin:/bin";
     const char *start=path;while(1){const char *end=strchr(start,':');size_t dn=end?(size_t)(end-start):strlen(start);size_t pn=dn+1+strlen(program)+1;char *candidate=(char*)malloc(pn);if(!candidate)return;if(dn){memcpy(candidate,start,dn);candidate[dn]='/';strcpy(candidate+dn+1,program);}else strcpy(candidate,program);execve(candidate,argv,envp);free(candidate);if(!end)break;start=end+1;}
 }
-SlangTextList *slang_process_run_program_env(const char *program, const SlangTextList *args, const char *cwd, const SlangTextList *overrides) {
+SLANG_API SlangTextList *slang_process_run_program_env(const char *program, const SlangTextList *args, const char *cwd, const SlangTextList *overrides) {
     if(!program||!*program)return NULL;int out_pipe[2],err_pipe[2];if(pipe(out_pipe)!=0||pipe(err_pipe)!=0)return NULL;pid_t pid=fork();if(pid<0)return NULL;
     if(pid==0){dup2(out_pipe[1],STDOUT_FILENO);dup2(err_pipe[1],STDERR_FILENO);close(out_pipe[0]);close(out_pipe[1]);close(err_pipe[0]);close(err_pipe[1]);if(cwd&&*cwd)chdir(cwd);size_t argc=1+(args?args->count:0);char **argv=(char**)calloc(argc+1,sizeof(char*));if(!argv)_exit(126);argv[0]=(char*)program;for(size_t i=0;i<(args?args->count:0);++i)argv[i+1]=args->items[i]?args->items[i]:(char*)"";argv[argc]=NULL;char **envp=slang_build_posix_environment(overrides);if(!envp)_exit(126);slang_exec_env(program,argv,envp);free(envp);free(argv);_exit(127);}
     close(out_pipe[1]);close(err_pipe[1]);size_t ocap=4096,olen=0,ecap=4096,elen=0;char *out=(char*)malloc(ocap),*err=(char*)malloc(ecap);if(!out||!err){free(out);free(err);close(out_pipe[0]);close(err_pipe[0]);return NULL;}int oo=1,eo=1;
@@ -736,7 +743,7 @@ SlangTextList *slang_process_run_program_env(const char *program, const SlangTex
 }
 #endif
 
-char *slang_process_environment(const char *name) {
+SLANG_API char *slang_process_environment(const char *name) {
     if (!name) return slang_strdup("");
     const char *value = getenv(name);
     return slang_strdup(value ? value : "");
@@ -761,7 +768,7 @@ static SlangF64Collection *slang_f64_collection_ptr(int64_t handle) {
     return (SlangF64Collection *)(uintptr_t)handle;
 }
 
-int64_t slang_collection_f64_new(const double *values, long count) {
+SLANG_API int64_t slang_collection_f64_new(const double *values, long count) {
     if (count < 0) return 0;
     SlangF64Collection *c = (SlangF64Collection *)calloc(1, sizeof(*c));
     if (!c) return 0;
@@ -774,22 +781,22 @@ int64_t slang_collection_f64_new(const double *values, long count) {
     return (int64_t)(uintptr_t)c;
 }
 
-int64_t slang_collection_f64_from_scalar(double value) {
+SLANG_API int64_t slang_collection_f64_from_scalar(double value) {
     return slang_collection_f64_new(&value, 1);
 }
 
-long slang_collection_f64_count(int64_t handle) {
+SLANG_API long slang_collection_f64_count(int64_t handle) {
     SlangF64Collection *c = slang_f64_collection_ptr(handle);
     return c ? (long)c->count : 0;
 }
 
-double slang_collection_f64_get(int64_t handle, long index) {
+SLANG_API double slang_collection_f64_get(int64_t handle, long index) {
     SlangF64Collection *c = slang_f64_collection_ptr(handle);
     if (!c || index < 0 || (size_t)index >= c->count) return 0.0;
     return c->values[index];
 }
 
-void slang_collection_free(int64_t handle) {
+SLANG_API void slang_collection_free(int64_t handle) {
     SlangF64Collection *c = slang_f64_collection_ptr(handle);
     if (!c) return;
     free(c->values);
@@ -830,7 +837,7 @@ static SlangRecordF64Collection *slang_record_f64_ptr(int64_t handle) {
     return (SlangRecordF64Collection *)(uintptr_t)handle;
 }
 
-int64_t slang_record_f64_new(const double *const *columns, long fields, long rows) {
+SLANG_API int64_t slang_record_f64_new(const double *const *columns, long fields, long rows) {
     if (fields < 0 || rows < 0) return 0;
     SlangRecordF64Collection *r = (SlangRecordF64Collection *)calloc(1, sizeof(*r));
     if (!r) return 0;
@@ -855,7 +862,7 @@ int64_t slang_record_f64_new(const double *const *columns, long fields, long row
     return (int64_t)(uintptr_t)r;
 }
 
-int64_t slang_record_f64_new_flat(const double *flat, long fields, long rows) {
+SLANG_API int64_t slang_record_f64_new_flat(const double *flat, long fields, long rows) {
     if (fields < 0 || rows < 0) return 0;
     if ((fields > 0 && rows > 0) && !flat) return 0;
     SlangRecordF64Collection *r = (SlangRecordF64Collection *)calloc(1, sizeof(*r));
@@ -877,11 +884,11 @@ int64_t slang_record_f64_new_flat(const double *flat, long fields, long rows) {
 /* 1.10.80: explicit shared-endpoint ABI. The selected global plan owns the
  * lifetime of the endpoint handle; downstream branches reuse the same handle
  * instead of requesting another physical Record copy. */
-int64_t slang_record_f64_share(int64_t handle) {
+SLANG_API int64_t slang_record_f64_share(int64_t handle) {
     return slang_record_f64_ptr(handle) ? handle : 0;
 }
 
-int64_t slang_record_f64_materialize(int64_t handle) {
+SLANG_API int64_t slang_record_f64_materialize(int64_t handle) {
     SlangRecordF64Collection *src = slang_record_f64_ptr(handle);
     if (!src) return 0;
     SlangRecordF64Collection *out = (SlangRecordF64Collection*)calloc(1, sizeof(*out));
@@ -897,23 +904,23 @@ int64_t slang_record_f64_materialize(int64_t handle) {
     return (int64_t)(uintptr_t)out;
 }
 
-long slang_record_f64_count(int64_t handle) {
+SLANG_API long slang_record_f64_count(int64_t handle) {
     SlangRecordF64Collection *r = slang_record_f64_ptr(handle);
     return r ? (long)r->rows : 0;
 }
 
-long slang_record_f64_field_count(int64_t handle) {
+SLANG_API long slang_record_f64_field_count(int64_t handle) {
     SlangRecordF64Collection *r = slang_record_f64_ptr(handle);
     return r ? (long)r->fields : 0;
 }
 
-double slang_record_f64_get(int64_t handle, long field, long row) {
+SLANG_API double slang_record_f64_get(int64_t handle, long field, long row) {
     SlangRecordF64Collection *r = slang_record_f64_ptr(handle);
     if (!r || field < 0 || row < 0 || (size_t)field >= r->fields || (size_t)row >= r->rows) return 0.0;
     return r->columns[field][row];
 }
 
-void slang_record_f64_free(int64_t handle) {
+SLANG_API void slang_record_f64_free(int64_t handle) {
     SlangRecordF64Collection *r = slang_record_f64_ptr(handle);
     if (!r) return;
     for (size_t f = 0; f < r->fields; ++f) free(r->columns[f]);
@@ -921,7 +928,7 @@ void slang_record_f64_free(int64_t handle) {
     free(r);
 }
 
-int64_t slang_record_f64_filter(int64_t handle, long field, double threshold, int op) {
+SLANG_API int64_t slang_record_f64_filter(int64_t handle, long field, double threshold, int op) {
     SlangRecordF64Collection *src = slang_record_f64_ptr(handle);
     if (!src || field < 0 || (size_t)field >= src->fields) return 0;
     size_t kept = 0;
@@ -969,7 +976,7 @@ int64_t slang_record_f64_filter(int64_t handle, long field, double threshold, in
 }
 
 
-int64_t slang_record_f64_filter_field_compare(int64_t handle, long left_field, long right_field, double multiplier, int op) {
+SLANG_API int64_t slang_record_f64_filter_field_compare(int64_t handle, long left_field, long right_field, double multiplier, int op) {
     SlangRecordF64Collection *src = slang_record_f64_ptr(handle);
     if (!src || left_field < 0 || right_field < 0 || (size_t)left_field >= src->fields || (size_t)right_field >= src->fields) return 0;
     size_t kept = 0;
@@ -1029,7 +1036,7 @@ static int slang_record_compare(double a, double b, int op) {
     }
 }
 
-int64_t slang_record_f64_filter_expr(int64_t handle, const int64_t *program, long instructions) {
+SLANG_API int64_t slang_record_f64_filter_expr(int64_t handle, const int64_t *program, long instructions) {
     SlangRecordF64Collection *src = slang_record_f64_ptr(handle);
     if (!src || !program || instructions <= 0) return 0;
     size_t kept = 0;
@@ -1082,7 +1089,7 @@ int64_t slang_record_f64_filter_expr(int64_t handle, const int64_t *program, lon
 /* 1.10.73: schema-preserving numeric Record field mask used by partial
  * recomputation. Unselected columns are zeroed while column positions remain
  * unchanged, matching the mixed Record mask ABI. */
-int64_t slang_record_f64_mask_fields(int64_t handle, const int64_t *selected, long field_count) {
+SLANG_API int64_t slang_record_f64_mask_fields(int64_t handle, const int64_t *selected, long field_count) {
     SlangRecordF64Collection *src = slang_record_f64_ptr(handle);
     if (!src || field_count < 0 || (field_count && !selected)) return 0;
     SlangRecordF64Collection *out = (SlangRecordF64Collection *)calloc(1, sizeof(*out));
@@ -1106,7 +1113,7 @@ int64_t slang_record_f64_mask_fields(int64_t handle, const int64_t *selected, lo
 /* Execute one postfix program that may update several output fields. Opcode 20
  * stores the top stack value into the selected field. The source collection is
  * copied first, so unchanged fields and row alignment are preserved. */
-int64_t slang_record_f64_map_fields_expr(int64_t handle, const int64_t *program, long instructions) {
+SLANG_API int64_t slang_record_f64_map_fields_expr(int64_t handle, const int64_t *program, long instructions) {
     SlangRecordF64Collection *src = slang_record_f64_ptr(handle);
     if (!src || !program || instructions <= 0) return 0;
     int64_t out_handle = slang_record_f64_new((const double *const *)src->columns, (long)src->fields, (long)src->rows);
@@ -1148,7 +1155,7 @@ int64_t slang_record_f64_map_fields_expr(int64_t handle, const int64_t *program,
     return out_handle;
 }
 
-int64_t slang_record_f64_map_field_expr(int64_t handle, long target_field, const int64_t *program, long instructions) {
+SLANG_API int64_t slang_record_f64_map_field_expr(int64_t handle, long target_field, const int64_t *program, long instructions) {
     SlangRecordF64Collection *src = slang_record_f64_ptr(handle);
     if (!src || target_field < 0 || (size_t)target_field >= src->fields || !program || instructions <= 0) return 0;
     int64_t out_handle = slang_record_f64_new((const double *const *)src->columns, (long)src->fields, (long)src->rows);
@@ -1171,7 +1178,7 @@ int64_t slang_record_f64_map_field_expr(int64_t handle, long target_field, const
     return out_handle;
 }
 
-int64_t slang_record_f64_map_field_binary(int64_t handle, long target_field, long other_field, int op) {
+SLANG_API int64_t slang_record_f64_map_field_binary(int64_t handle, long target_field, long other_field, int op) {
     SlangRecordF64Collection *src = slang_record_f64_ptr(handle);
     if (!src || target_field < 0 || other_field < 0 || (size_t)target_field >= src->fields || (size_t)other_field >= src->fields) return 0;
     int64_t out_handle = slang_record_f64_new((const double *const *)src->columns, (long)src->fields, (long)src->rows);
@@ -1190,7 +1197,7 @@ int64_t slang_record_f64_map_field_binary(int64_t handle, long target_field, lon
     return out_handle;
 }
 
-int64_t slang_record_f64_map_field(int64_t handle, long field, double operand, int op) {
+SLANG_API int64_t slang_record_f64_map_field(int64_t handle, long field, double operand, int op) {
     SlangRecordF64Collection *src = slang_record_f64_ptr(handle);
     if (!src || field < 0 || (size_t)field >= src->fields) return 0;
     int64_t out_handle = slang_record_f64_new((const double *const *)src->columns, (long)src->fields, (long)src->rows);
@@ -1212,7 +1219,7 @@ int64_t slang_record_f64_map_field(int64_t handle, long field, double operand, i
 
 
 /* predicate op 0: value > threshold; 1: >=; 2: <; 3: <=; 4: ==; 5: != */
-int64_t slang_collection_f64_filter(int64_t handle, double threshold, int op) {
+SLANG_API int64_t slang_collection_f64_filter(int64_t handle, double threshold, int op) {
     SlangF64Collection *src = slang_f64_collection_ptr(handle);
     if (!src) return 0;
     SlangF64Collection *out = (SlangF64Collection *)calloc(1, sizeof(*out));
@@ -1238,7 +1245,7 @@ int64_t slang_collection_f64_filter(int64_t handle, double threshold, int op) {
 }
 
 /* map op 0: multiply, 1: add, 2: subtract, 3: divide, 4: power */
-int64_t slang_collection_f64_map(int64_t handle, double operand, int op) {
+SLANG_API int64_t slang_collection_f64_map(int64_t handle, double operand, int op) {
     SlangF64Collection *src = slang_f64_collection_ptr(handle);
     if (!src) return 0;
     SlangF64Collection *out = (SlangF64Collection *)calloc(1, sizeof(*out));
@@ -1260,7 +1267,7 @@ int64_t slang_collection_f64_map(int64_t handle, double operand, int op) {
     return (int64_t)(uintptr_t)out;
 }
 
-int64_t slang_collection_f64_sort(int64_t handle) {
+SLANG_API int64_t slang_collection_f64_sort(int64_t handle) {
     SlangF64Collection *src = slang_f64_collection_ptr(handle);
     if (!src) return 0;
     SlangF64Collection *out = (SlangF64Collection *)calloc(1, sizeof(*out));
@@ -1314,7 +1321,7 @@ static void slang_record_mixed_release(SlangRecordMixedCollection *r) {
     free(r->texts); free(r->values); free(r->types); free(r);
 }
 
-int64_t slang_record_mixed_new_flat(const int64_t *types, const int64_t *values,
+SLANG_API int64_t slang_record_mixed_new_flat(const int64_t *types, const int64_t *values,
                                     const int64_t *text_ptrs, long fields, long rows) {
     if (fields < 0 || rows < 0 || (fields && !types) || (fields && rows && !values)) return 0;
     SlangRecordMixedCollection *r = (SlangRecordMixedCollection *)calloc(1, sizeof(*r));
@@ -1344,11 +1351,11 @@ int64_t slang_record_mixed_new_flat(const int64_t *types, const int64_t *values,
 }
 
 /* 1.10.80: shared mixed Record endpoint; no second physical copy. */
-int64_t slang_record_mixed_share(int64_t handle) {
+SLANG_API int64_t slang_record_mixed_share(int64_t handle) {
     return slang_record_mixed_ptr(handle) ? handle : 0;
 }
 
-int64_t slang_record_mixed_materialize(int64_t handle) {
+SLANG_API int64_t slang_record_mixed_materialize(int64_t handle) {
     SlangRecordMixedCollection *src = slang_record_mixed_ptr(handle);
     if (!src) return 0;
     size_t total = src->rows * src->fields;
@@ -1372,37 +1379,37 @@ int64_t slang_record_mixed_materialize(int64_t handle) {
     return (int64_t)(intptr_t)out;
 }
 
-long slang_record_mixed_count(int64_t handle) {
+SLANG_API long slang_record_mixed_count(int64_t handle) {
     SlangRecordMixedCollection *r=slang_record_mixed_ptr(handle); return r ? (long)r->rows : 0;
 }
-long slang_record_mixed_field_count(int64_t handle) {
+SLANG_API long slang_record_mixed_field_count(int64_t handle) {
     SlangRecordMixedCollection *r=slang_record_mixed_ptr(handle); return r ? (long)r->fields : 0;
 }
-int slang_record_mixed_field_type(int64_t handle, long field) {
+SLANG_API int slang_record_mixed_field_type(int64_t handle, long field) {
     SlangRecordMixedCollection *r=slang_record_mixed_ptr(handle);
     if (!r || field<0 || (size_t)field>=r->fields) return -1; return r->types[field];
 }
-double slang_record_mixed_get_number(int64_t handle,long field,long row) {
+SLANG_API double slang_record_mixed_get_number(int64_t handle,long field,long row) {
     SlangRecordMixedCollection *r=slang_record_mixed_ptr(handle);
     if (!r||field<0||row<0||(size_t)field>=r->fields||(size_t)row>=r->rows||r->types[field]!=0) return 0.0;
     return slang_bits_f64((int64_t)r->values[(size_t)row*r->fields+(size_t)field]);
 }
-int slang_record_mixed_get_bool(int64_t handle,long field,long row) {
+SLANG_API int slang_record_mixed_get_bool(int64_t handle,long field,long row) {
     SlangRecordMixedCollection *r=slang_record_mixed_ptr(handle);
     if (!r||field<0||row<0||(size_t)field>=r->fields||(size_t)row>=r->rows||r->types[field]!=1) return 0;
     return r->values[(size_t)row*r->fields+(size_t)field] ? 1 : 0;
 }
-const char *slang_record_mixed_get_text(int64_t handle,long field,long row) {
+SLANG_API const char *slang_record_mixed_get_text(int64_t handle,long field,long row) {
     SlangRecordMixedCollection *r=slang_record_mixed_ptr(handle);
     if (!r||field<0||row<0||(size_t)field>=r->fields||(size_t)row>=r->rows||r->types[field]!=2) return NULL;
     return r->texts[(size_t)row*r->fields+(size_t)field];
 }
-void slang_record_mixed_free(int64_t handle) { slang_record_mixed_release(slang_record_mixed_ptr(handle)); }
+SLANG_API void slang_record_mixed_free(int64_t handle) { slang_record_mixed_release(slang_record_mixed_ptr(handle)); }
 
 /* 1.10.50: schema-driven mixed Record projection/reordering.
  * source_fields selects source columns; target_types is the authoritative
  * output schema contract. No value coercion is performed. */
-int64_t slang_record_mixed_project_fields(int64_t handle,
+SLANG_API int64_t slang_record_mixed_project_fields(int64_t handle,
                                           const int64_t *source_fields,
                                           const int64_t *target_types,
                                           long target_fields) {
@@ -1449,7 +1456,7 @@ int64_t slang_record_mixed_project_fields(int64_t handle,
  * Record plan. Unlike project_fields, this keeps original column indices so
  * existing downstream operators can continue to use their semantic field
  * positions. Unselected fields are replaced with neutral values. */
-int64_t slang_record_mixed_mask_fields(int64_t handle,
+SLANG_API int64_t slang_record_mixed_mask_fields(int64_t handle,
                                        const int64_t *selected,
                                        long field_count) {
     SlangRecordMixedCollection *src = slang_record_mixed_ptr(handle);
@@ -1560,7 +1567,7 @@ static int slang_record_mixed_eval(const SlangRecordMixedCollection *src,size_t 
     if(*sp!=1) return 0; *result=stack[0]; return 1;
 }
 
-int64_t slang_record_mixed_filter_expr(int64_t handle,const int64_t *program,long instructions,const char *const *text_pool,long text_count) {
+SLANG_API int64_t slang_record_mixed_filter_expr(int64_t handle,const int64_t *program,long instructions,const char *const *text_pool,long text_count) {
     SlangRecordMixedCollection *src=slang_record_mixed_ptr(handle);
     if(!src||!program||instructions<=0) return 0;
     size_t kept=0; SlangMixedValue stack[256],res; int sp;
@@ -1585,7 +1592,7 @@ int64_t slang_record_mixed_filter_expr(int64_t handle,const int64_t *program,lon
     return (int64_t)(uintptr_t)out;
 }
 
-int64_t slang_record_mixed_map_fields_expr(int64_t handle,const int64_t *program,long instructions,const char *const *text_pool,long text_count) {
+SLANG_API int64_t slang_record_mixed_map_fields_expr(int64_t handle,const int64_t *program,long instructions,const char *const *text_pool,long text_count) {
     SlangRecordMixedCollection *src=slang_record_mixed_ptr(handle);
     if(!src||!program||instructions<=0) return 0;
     SlangRecordMixedCollection *out=(SlangRecordMixedCollection*)calloc(1,sizeof(*out));
@@ -1662,7 +1669,7 @@ int64_t slang_record_mixed_map_fields_expr(int64_t handle,const int64_t *program
  * constructor argument is evaluated against the original source row and stored
  * into its corresponding target field. No field-count/name compatibility is
  * assumed, and result types must exactly match target types. */
-int64_t slang_record_mixed_map_to_schema_expr(int64_t handle,
+SLANG_API int64_t slang_record_mixed_map_to_schema_expr(int64_t handle,
                                               const int64_t *types, long fields,
                                               const int64_t *program, long instructions,
                                               const char *const *text_pool, long text_count) {
@@ -1755,14 +1762,14 @@ int64_t slang_record_mixed_map_to_schema_expr(int64_t handle,
 }
 
 /* reduce op follows slang_reduce_f64: 0 +, 1 -, 2 *, 3 /. */
-double slang_collection_f64_reduce(int64_t handle, double initial, int op) {
+SLANG_API double slang_collection_f64_reduce(int64_t handle, double initial, int op) {
     SlangF64Collection *c = slang_f64_collection_ptr(handle);
     if (!c) return initial;
     return slang_reduce_f64(c->values, (long)c->count, initial, op);
 }
 
 /* aggregate op: 0 sum, 1 min, 2 max, 3 count */
-double slang_collection_f64_aggregate(int64_t handle, int op) {
+SLANG_API double slang_collection_f64_aggregate(int64_t handle, int op) {
     SlangF64Collection *c = slang_f64_collection_ptr(handle);
     if (!c) return 0.0;
     if (op == 3) return (double)c->count;
@@ -1849,7 +1856,7 @@ static int slang_csv_parse_line(const char **cursor, char ***fields_out, size_t 
     return 1;
 }
 
-int64_t slang_csv_open(const char *path) {
+SLANG_API int64_t slang_csv_open(const char *path) {
     char *text = slang_file_read(path);
     if (!text) return 0;
     SlangCsvTable *t = (SlangCsvTable *)calloc(1, sizeof(SlangCsvTable));
@@ -1886,25 +1893,25 @@ int64_t slang_csv_open(const char *path) {
     return (int64_t)(intptr_t)t;
 }
 
-long slang_csv_count(int64_t handle) {
+SLANG_API long slang_csv_count(int64_t handle) {
     SlangCsvTable *t = (SlangCsvTable *)(intptr_t)handle;
     return t ? (long)t->rows : 0;
 }
 
-long slang_csv_field_index(int64_t handle, const char *name) {
+SLANG_API long slang_csv_field_index(int64_t handle, const char *name) {
     SlangCsvTable *t = (SlangCsvTable *)(intptr_t)handle;
     if (!t || !name) return -1;
     for (size_t i=0;i<t->cols;++i) if (strcmp(t->headers[i], name) == 0) return (long)i;
     return -1;
 }
 
-const char *slang_csv_get_text(int64_t handle, long row, long field) {
+SLANG_API const char *slang_csv_get_text(int64_t handle, long row, long field) {
     SlangCsvTable *t = (SlangCsvTable *)(intptr_t)handle;
     if (!t || row < 0 || field < 0 || (size_t)row >= t->rows || (size_t)field >= t->cols) return "";
     return t->cells[(size_t)row * t->cols + (size_t)field];
 }
 
-double slang_to_number(const char *text) {
+SLANG_API double slang_to_number(const char *text) {
     if (!text) return 0.0;
     char *end = NULL;
     double value = strtod(text, &end);
@@ -1916,7 +1923,7 @@ double slang_to_number(const char *text) {
     return value;
 }
 
-void slang_csv_free(int64_t handle) {
+SLANG_API void slang_csv_free(int64_t handle) {
     slang_csv_free_table((SlangCsvTable *)(intptr_t)handle);
 }
 
@@ -1966,7 +1973,7 @@ static void slang_csv_sort_merge_recursive(SlangCsvSortEntry *a, SlangCsvSortEnt
     slang_csv_sort_merge(a, tmp, lo, mid, hi);
 }
 
-int slang_csv_sort_print(int64_t handle, long field, int ascending) {
+SLANG_API int slang_csv_sort_print(int64_t handle, long field, int ascending) {
     SlangCsvTable *t = (SlangCsvTable *)(intptr_t)handle;
     if (!t || field < 0 || (size_t)field >= t->cols) return 1;
     SlangCsvSortEntry *order = NULL, *tmp = NULL;
@@ -2024,7 +2031,7 @@ static int slang_csv_group_find(SlangCsvGroup *groups, size_t count, const char 
 }
 
 
-int slang_csv_group_count_where_text_print(int64_t handle, long group_field, long filter_field, const char *filter_value) {
+SLANG_API int slang_csv_group_count_where_text_print(int64_t handle, long group_field, long filter_field, const char *filter_value) {
     SlangCsvTable *t = (SlangCsvTable *)(intptr_t)handle;
     if (!t || group_field < 0 || filter_field < 0 || (size_t)group_field >= t->cols || (size_t)filter_field >= t->cols || !filter_value) return 1;
     SlangCsvGroup *groups = NULL;
@@ -2060,7 +2067,7 @@ int slang_csv_group_count_where_text_print(int64_t handle, long group_field, lon
     return 0;
 }
 
-int slang_csv_group_numeric_map_print(int64_t handle, long group_field, long value_field, int op) {
+SLANG_API int slang_csv_group_numeric_map_print(int64_t handle, long group_field, long value_field, int op) {
     SlangCsvTable *t = (SlangCsvTable *)(intptr_t)handle;
     if (!t || group_field < 0 || value_field < 0 || (size_t)group_field >= t->cols || (size_t)value_field >= t->cols) return 1;
     if (op < 1 || op > 4) return 1;
@@ -2124,7 +2131,7 @@ int slang_csv_group_numeric_map_print(int64_t handle, long group_field, long val
     return 0;
 }
 
-int slang_csv_group_multi_numeric_print(int64_t handle, long group_field, const long *value_fields, const int *ops, long n, long filter_field, const char *filter_value) {
+SLANG_API int slang_csv_group_multi_numeric_print(int64_t handle, long group_field, const long *value_fields, const int *ops, long n, long filter_field, const char *filter_value) {
     SlangCsvTable *t = (SlangCsvTable *)(intptr_t)handle;
     if (!t || group_field < 0 || (size_t)group_field >= t->cols || !value_fields || !ops || n <= 0 || n > 16) return 1;
     if (filter_field >= 0 && ((size_t)filter_field >= t->cols || !filter_value)) return 1;
@@ -2197,7 +2204,7 @@ int slang_csv_group_multi_numeric_print(int64_t handle, long group_field, const 
     return 0;
 }
 
-int slang_csv_group_aggregate_print(int64_t handle, long group_field, long value_field, int op) {
+SLANG_API int slang_csv_group_aggregate_print(int64_t handle, long group_field, long value_field, int op) {
     SlangCsvTable *t = (SlangCsvTable *)(intptr_t)handle;
     if (!t || group_field < 0 || (size_t)group_field >= t->cols) return 1;
     if (op != 0 && (value_field < 0 || (size_t)value_field >= t->cols)) return 1;

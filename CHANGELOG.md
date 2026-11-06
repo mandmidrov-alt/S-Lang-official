@@ -1,3 +1,11 @@
+
+## 1.0 — Windows native runtime DLL exports
+
+- Exported the public `slang_*` C ABI from the Windows native runtime DLL using `__declspec(dllexport)`.
+- Kept the export annotation empty on Linux and macOS, preserving their existing ABI and build behavior.
+- Synchronized `slang/slang_runtime.c` and `runtime/slang_runtime.c`.
+- Added regression coverage for the CSV ABI symbols required by frozen Windows Native JIT execution.
+
 # S-Lang 1.0 — Stable Release
 
 S-Lang 1.0 consolidates the language implementation, compiler/runtime, standard library, editor integrations, documentation, and release tooling into the first public 1.0 release line.
