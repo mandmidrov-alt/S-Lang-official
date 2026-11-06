@@ -27,13 +27,13 @@ def fraction_number(value: float) -> float:
 
 
 def is_even_number(value: float) -> bool:
-    if not math.isfinite(value) or not value.is_integer():
+    if not is_integer_number(value):
         raise ValueError("is_even_number expects an integer-valued Number")
     return int(value) % 2 == 0
 
 
 def is_odd_number(value: float) -> bool:
-    if not math.isfinite(value) or not value.is_integer():
+    if not is_integer_number(value):
         raise ValueError("is_odd_number expects an integer-valued Number")
     return int(value) % 2 != 0
 
@@ -169,7 +169,17 @@ def is_nan_number(value: float) -> bool:
 
 
 def is_integer_number(value: float) -> bool:
-    return math.isfinite(value) and value.is_integer()
+    """Return whether value is a finite integer-valued numeric scalar.
+
+    bool is deliberately excluded even though bool subclasses int in Python.
+    """
+    if isinstance(value, bool):
+        return False
+    if isinstance(value, int):
+        return True
+    if isinstance(value, float):
+        return math.isfinite(value) and value.is_integer()
+    return False
 
 
 def reciprocal_number(value: float) -> float:
@@ -237,23 +247,19 @@ def atanh_number(value: float) -> float:
 
 
 def gcd_number(left: float, right: float) -> float:
-    if not math.isfinite(left) or not math.isfinite(right):
-        raise ValueError("gcd_number expects finite Numbers")
-    if not left.is_integer() or not right.is_integer():
+    if not is_integer_number(left) or not is_integer_number(right):
         raise ValueError("gcd_number expects integer-valued Numbers")
     return float(math.gcd(int(left), int(right)))
 
 
 def lcm_number(left: float, right: float) -> float:
-    if not math.isfinite(left) or not math.isfinite(right):
-        raise ValueError("lcm_number expects finite Numbers")
-    if not left.is_integer() or not right.is_integer():
+    if not is_integer_number(left) or not is_integer_number(right):
         raise ValueError("lcm_number expects integer-valued Numbers")
     return float(math.lcm(int(left), int(right)))
 
 
 def factorial_number(value: float) -> float:
-    if not math.isfinite(value) or not value.is_integer() or value < 0:
+    if not is_integer_number(value) or value < 0:
         raise ValueError("factorial_number expects a non-negative integer-valued Number")
     return float(math.factorial(int(value)))
 

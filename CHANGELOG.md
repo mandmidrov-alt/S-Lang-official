@@ -1,3 +1,10 @@
+## 1.0 — Numeric integer validation consistency
+
+- Made integer-valued numeric checks accept Python `int` and integral `float` values consistently.
+- Explicitly reject booleans, non-numeric values, fractional values, infinities, and NaN.
+- Updated parity predicates, GCD, LCM, and factorial validation to use the shared safe predicate.
+- Added regression tests for integer/float interoperability and invalid numeric values.
+
 
 ## 1.0 — Windows native runtime DLL exports
 
