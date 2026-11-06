@@ -27,7 +27,7 @@ jobs:
             artifact: slang-macos-x64
             executable: dist/macos-x64/slang
           - name: macOS ARM64
-            os: macos-14
+            os: macos-15
             artifact: slang-macos-arm64
             executable: dist/macos-arm64/slang
           - name: Linux x64
