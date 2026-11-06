@@ -31,7 +31,7 @@ def _compile_direct(source: Path, output: Path, keep_ir: bool = False):
     if not clang:
         raise SystemExit("error: clang or gcc not found; use 'slang run --native-jit' for self-contained native execution")
     runtime = _runtime_source_path()
-    cmd = [clang, "-O2", str(ll), str(runtime), "-lm", "-o", str(output)]
+    cmd = [clang, "-O2", str(ll), str(runtime), *( ["-lm"] if sys.platform != "win32" else [] ), "-o", str(output)]
     subprocess.run(cmd, check=True)
     if not keep_ir:
         ll.unlink(missing_ok=True)
@@ -615,7 +615,7 @@ def main():
                         ll.write_text(lowered.text, encoding="utf-8")
                         compiler = shutil.which("clang") or shutil.which("gcc")
                         runtime = _runtime_source_path()
-                        subprocess.run([compiler, "-O2", str(ll), str(runtime), "-lm", "-o", str(out)], check=True)
+                        subprocess.run([compiler, "-O2", str(ll), str(runtime), *( ["-lm"] if sys.platform != "win32" else [] ), "-o", str(out)], check=True)
                         subprocess.run([str(out)], check=True)
                 else:
                     run(p)
@@ -883,7 +883,7 @@ def main():
                     if not clang:
                         raise SystemExit("error: clang or gcc not found")
                     runtime = _runtime_source_path()
-                    subprocess.run([clang, "-O2", str(ll), str(runtime), "-lm", "-o", str(out)], check=True)
+                    subprocess.run([clang, "-O2", str(ll), str(runtime), *( ["-lm"] if sys.platform != "win32" else [] ), "-o", str(out)], check=True)
                     if not args.keep_ir:
                         ll.unlink(missing_ok=True)
                     print(out)

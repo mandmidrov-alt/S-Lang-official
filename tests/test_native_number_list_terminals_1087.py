@@ -46,7 +46,7 @@ def _run_native_terminal(tmp_path, operation, return_type, values, *, pipeline=N
     )
     executable = tmp_path / "native-terminal"
     built = subprocess.run(
-        [COMPILER, str(ir_path), str(harness), str(ROOT / "slang" / "slang_runtime.c"), "-lm", "-o", str(executable)],
+        [COMPILER, str(ir_path), str(harness), str(ROOT / "slang" / "slang_runtime.c"), *( ["-lm"] if __import__("os").name != "nt" else [] ), "-o", str(executable)],
         capture_output=True, text=True,
     )
     assert built.returncode == 0, built.stderr

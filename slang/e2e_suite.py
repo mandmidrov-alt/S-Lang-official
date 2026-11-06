@@ -84,7 +84,7 @@ def _native_artifact_run() -> dict[str, object]:
         _trace("persisted-artifact:write-ir-end")
         runtime = ROOT / "slang" / "slang_runtime.c"
         timeout_seconds = float(os.environ.get("SLANG_E2E_NATIVE_TIMEOUT", "30"))
-        build_command = [compiler, "-O2", str(ll), str(runtime), "-lm", "-o", str(exe)]
+        build_command = [compiler, "-O2", str(ll), str(runtime), *( ["-lm"] if os.name != "nt" else [] ), "-o", str(exe)]
         build_process = subprocess.Popen(
             build_command, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             start_new_session=(os.name != "nt"),

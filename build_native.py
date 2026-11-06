@@ -14,7 +14,7 @@ p=parse(src.read_text()); validate(p)
 ll=out.with_suffix('.ll')
 ll.write_text(llvm_ir(p))
 runtime = Path(__file__).parent / 'slang' / 'slang_runtime.c'
-cmd=['clang','-O2','-x','ir',str(ll),'-x','c',str(runtime),'-lm','-o',str(out)]
+cmd=['clang','-O2','-x','ir',str(ll),'-x','c',str(runtime), *(['-lm'] if sys.platform != 'win32' else []), '-o', str(out)]
 try:
     subprocess.run(cmd,check=True)
 except FileNotFoundError:
