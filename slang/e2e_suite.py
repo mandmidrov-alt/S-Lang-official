@@ -179,10 +179,24 @@ def run_suite() -> dict[str, object]:
     _trace("case:transitive-package-project:resolve-start")
     resolved = _cli("resolve-packages", str(project))
     _trace(f"case:transitive-package-project:resolve-end rc={resolved.returncode}")
+
+    if resolved.returncode != 0:
+        _trace(f"resolve stdout: {resolved.stdout}")
+        _trace(f"resolve stderr: {resolved.stderr}")
+
     locked = _cli("lock", str(project), "--check")
     _trace(f"case:transitive-package-project:lock-end rc={locked.returncode}")
+
+    if locked.returncode != 0:
+        _trace(f"lock stdout: {locked.stdout}")
+        _trace(f"lock stderr: {locked.stderr}")
+
     executed = _cli("run", str(project))
     _trace(f"case:transitive-package-project:run-end rc={executed.returncode}")
+
+    if executed.returncode != 0:
+        _trace(f"run stdout: {executed.stdout}")
+        _trace(f"run stderr: {executed.stderr}")
     cases.append({
         "name": "transitive-package-project",
         "status": "passed" if resolved.returncode == 0 and locked.returncode == 0 and executed.returncode == 0 and "42" in executed.stdout else "failed",
