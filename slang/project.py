@@ -218,26 +218,30 @@ def _resolve_dependencies_unlocked(root: str | Path) -> dict:
 LOCKFILE = "slang.lock"
 LOCK_FORMAT = 2
 
+def _normalize_text_bytes(data: bytes) -> bytes:
+    """Normalize text line endings before computing platform-independent hashes."""
+    return data.replace(b"\\r\\n", b"\\n").replace(b"\\r", b"\\n")
+
+
 def _manifest_digest(root: str | Path) -> str:
     path = Path(root).resolve() / MANIFEST
     if not path.is_file():
         return ""
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return hashlib.sha256(_normalize_text_bytes(path.read_bytes())).hexdigest()
 
 def _source_digest(root: str | Path) -> str:
     """Return a deterministic digest of all S-Lang source files in a package.
 
-    The digest covers relative paths and file bytes, so additions, deletions,
-    renames, and edits are all detected. Generated caches and the lock file are
-    intentionally excluded because only ``*.sl`` source files define the
-    package source state.
+    The digest covers relative paths and normalized text bytes, so additions,
+    deletions, renames, and edits are detected independently of platform line
+    endings. Generated caches and the lock file are intentionally excluded.
     """
     root = Path(root).resolve()
     files = sorted(p for p in root.rglob("*.sl") if p.is_file())
     h = hashlib.sha256()
     for path in files:
         rel = path.relative_to(root).as_posix().encode("utf-8")
-        data = path.read_bytes()
+        data = _normalize_text_bytes(path.read_bytes())
         h.update(len(rel).to_bytes(8, "big"))
         h.update(rel)
         h.update(len(data).to_bytes(8, "big"))
