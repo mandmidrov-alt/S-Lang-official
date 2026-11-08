@@ -7,22 +7,22 @@ root_version = "0.1.0"
 name = "base"
 version = "2.1.0"
 path = "packages/base"
-manifest_sha256 = "faa85327ef956884cbddf6fb034f4b26d03a242ca4b7d4d5c3d533a6cc7b6cd3"
-source_sha256 = "b079d3ae443995678e9470dd079d6bac6ca41f9365ead3c0559cc7bd32cba4eb"
+manifest_sha256 = "12ea1012273449f136f774eecee864134f2801e6fec2e30298d34c643e331254"
+source_sha256 = "165b495c01edc10a6c37a7659094d97e10957602b619df3f8c3c29c24072c09e"
 dependencies = {}
 
 [[package]]
 name = "mid"
 version = "1.2.0"
 path = "packages/mid"
-manifest_sha256 = "7a01a03f543d33bc0bb99bc746148c335c5c35b14fe81a8b0a8cb9baf0a929fe"
-source_sha256 = "5b3ba70aa7b92b80564c0d48f15b32b523ae81b8587eea283d2a5a3318fb55b2"
+manifest_sha256 = "7a1e19cfa05a9dd378e3e72a7709e90ff2bb18d34ef8ed1350a19f749f98f124"
+source_sha256 = "e6889f36bd2c25a67b6029cf77a3cf60e908bfc443f13b9e0a9e2dee8aa366ec"
 dependencies = {"base" = "packages/base"}
 
 [[package]]
 name = "package-graph-demo"
 version = "0.1.0"
 path = "."
-manifest_sha256 = "db0091b469c9089053def018f6dd95c58b7472cd11793d4da3dcbbcc6e92f966"
-source_sha256 = "b1512aa5d1e6c447f53ff3b770aecc48e9c68afa125c0c82fba37ee1c5837521"
+manifest_sha256 = "26420e50326699779559604e8a756cac93a2aa00fe920334bf0b4f7e069cdb86"
+source_sha256 = "eb183f0f309c52530f3d7eb7c19be7a94108ed921c2f46d2e6df4cab7f30e7b1"
 dependencies = {"mid" = "packages/mid"}

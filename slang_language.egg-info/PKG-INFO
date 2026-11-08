@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: slang-language
+Version: 1.0
+Summary: S-Lang programming language
+Requires-Python: >=3.10

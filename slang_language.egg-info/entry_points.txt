@@ -1,0 +1,2 @@
+[console_scripts]
+slang = slang.cli:main

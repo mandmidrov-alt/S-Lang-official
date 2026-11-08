@@ -220,7 +220,7 @@ LOCK_FORMAT = 2
 
 def _normalize_text_bytes(data: bytes) -> bytes:
     """Normalize text line endings before computing platform-independent hashes."""
-    return data.replace(b"\\r\\n", b"\\n").replace(b"\\r", b"\\n")
+    return data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
 
 
 def _manifest_digest(root: str | Path) -> str:
