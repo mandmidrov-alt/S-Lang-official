@@ -125,13 +125,8 @@ def test_manifest_digest_is_independent_of_line_endings(tmp_path):
     from slang.project import _manifest_digest
 
     manifest = tmp_path / "slang.toml"
-<<<<<<< HEAD
     content = b'[package]\nname = "demo"\nversion = "1.0.0"\n'
     manifest.write_bytes(content.replace(b"\n", b"\r\n"))
-=======
-    content = b'[package]\\nname = "demo"\\nversion = "1.0.0"\\n'
-    manifest.write_bytes(content.replace(b"\\n", b"\\r\\n"))
->>>>>>> 68766455fe9ab4275842ddeca7577644af9f0f4a
     crlf_digest = _manifest_digest(tmp_path)
     manifest.write_bytes(content)
     lf_digest = _manifest_digest(tmp_path)
@@ -146,13 +141,8 @@ def test_source_digest_is_independent_of_line_endings(tmp_path):
 
     source = tmp_path / "src" / "main.sl"
     source.parent.mkdir()
-<<<<<<< HEAD
     content = b"module demo\nlet value = 42\nshow value\n"
     source.write_bytes(content.replace(b"\n", b"\r\n"))
-=======
-    content = b"module demo\\nlet value = 42\\nshow value\\n"
-    source.write_bytes(content.replace(b"\\n", b"\\r\\n"))
->>>>>>> 68766455fe9ab4275842ddeca7577644af9f0f4a
     crlf_digest = _source_digest(tmp_path)
     source.write_bytes(content)
     lf_digest = _source_digest(tmp_path)
