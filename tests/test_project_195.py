@@ -119,3 +119,34 @@ def test_lock_rejects_added_and_removed_source(tmp_path):
     main.unlink()
     with pytest.raises(ValueError, match='source changed'):
         resolve_dependencies(root)
+
+
+def test_manifest_digest_is_independent_of_line_endings(tmp_path):
+    from slang.project import _manifest_digest
+
+    manifest = tmp_path / "slang.toml"
+    content = b'[package]\\nname = "demo"\\nversion = "1.0.0"\\n'
+    manifest.write_bytes(content.replace(b"\\n", b"\\r\\n"))
+    crlf_digest = _manifest_digest(tmp_path)
+    manifest.write_bytes(content)
+    lf_digest = _manifest_digest(tmp_path)
+    assert crlf_digest == lf_digest
+
+    manifest.write_bytes(content.replace(b'1.0.0', b'1.0.1'))
+    assert _manifest_digest(tmp_path) != lf_digest
+
+
+def test_source_digest_is_independent_of_line_endings(tmp_path):
+    from slang.project import _source_digest
+
+    source = tmp_path / "src" / "main.sl"
+    source.parent.mkdir()
+    content = b"module demo\\nlet value = 42\\nshow value\\n"
+    source.write_bytes(content.replace(b"\\n", b"\\r\\n"))
+    crlf_digest = _source_digest(tmp_path)
+    source.write_bytes(content)
+    lf_digest = _source_digest(tmp_path)
+    assert crlf_digest == lf_digest
+
+    source.write_bytes(content.replace(b"42", b"43"))
+    assert _source_digest(tmp_path) != lf_digest
